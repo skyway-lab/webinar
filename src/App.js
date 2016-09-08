@@ -7,8 +7,7 @@ class App extends Component {
         this.state = {
             mode: undefined,
             localStream: undefined,
-            remoteStreams: [],
-            isPeerOpen: false
+            remoteStreams: []
         };
         this.update = this.update.bind(this); // es6対応
     }
@@ -24,12 +23,10 @@ class App extends Component {
                 return stream !== newState.remoteStream.remove;
             });
         }
-        const isPeerOpen = newState.isPeerOpen ? newState.isPeerOpen : this.state.isPeerOpen;
         this.setState({
             mode: mode,
             localStream: localStream,
-            remoteStreams: remoteStreams,
-            isPeerOpen: isPeerOpen
+            remoteStreams: remoteStreams
         });
     }
     render() {
@@ -67,70 +64,17 @@ class SelectMode extends Component {
 class SpeakerUi extends Component {
     constructor (props) {
         super(props);
-        this.peer = new Peer('speaker', {
-            key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
-            debug: 3
-        });
-        this.peer.on('open', () => {
-            this.props.update({
-                isPeerOpen: true
-            })
-        });
-        this.peer.on('error', (err) => {
-            console.error(err.message);
-        });
-    }
-    _onClick () {
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-        const videoConstraints
-            = navigator.webkitGetUserMedia
-            ? // for chrome
-                {
-                    mandatory: {
-                        maxWidth: 640,
-                        maxHeight: 360,
-                        maxFrameRate: 5
-                    }
-                }
-            : // for firefox
-                {
-                    width: 160,
-                    height: 90,
-                    facingMode: 'user'
-                };
-        const roomName = this.props.roomName;
-        navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
-            this.props.update({
-                localStream: stream
-            });
-            this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: stream});
-            this.room.on('stream', (stream) => {
-                this.props.update({
-                    remoteStream: {add: stream}
-                });
-            });
-            this.room.on('removeStream', (stream) => {
-                this.props.update({
-                    remoteStream: {remove: stream}
-                });
-            });
-            this.room.on('close', () => {
-                console.warn('room is closed.');
-            });
-            this.room.on('peerJoin', () => {
-                console.log('peerJoin');
-            });
-        }, (err) => {
-            console.error(err);
-        });
+        this.isWebinarStarted = false;
     }
     render () {
-        const buttonDisabled = !this.props.isPeerOpen;
         if (this.props.mode === 'speaker') {
+            if (!this.isWebinarStarted) {
+                this.isWebinarStarted = true;
+                webinar.bind(this)('speaker', 640, 360, false);
+            }
             return (
                 <div>
                     <h1>講師</h1>
-                    <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
                     <h2>自分</h2>
                     <LocalVideo localStream={this.props.localStream} />
                     <h2>聴衆</h2>
@@ -146,76 +90,17 @@ class SpeakerUi extends Component {
 class AudienceUi extends Component {
     constructor (props) {
         super(props);
-        this.peer = new Peer({
-            key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
-            debug: 3
-        });
-        this.peer.on('open', () => {
-            this.props.update({
-                isPeerOpen: true
-            })
-        });
-        this.peer.on('error', (err) => {
-            console.error(err.message);
-        });
-    }
-    _onClick () {
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-        const videoConstraints
-            = navigator.webkitGetUserMedia
-            ? // for chrome
-        {
-            mandatory: {
-                maxWidth: 160,
-                maxHeight: 90,
-                maxFrameRate: 5
-            }
-        }
-            : // for firefox
-        {
-            width: 160,
-            height: 90,
-            facingMode: 'user'
-        };
-        const roomName = this.props.roomName;
-        navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
-            stream.getAudioTracks().forEach((track) => {
-                track.enabled = false;
-            });
-            stream.getVideoTracks().forEach((track) => {
-                track.enabled = false;
-            });
-            this.props.update({
-                localStream: stream
-            });
-            this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: stream});
-            this.room.on('stream', (stream) => {
-                this.props.update({
-                    remoteStream: {add: stream}
-                });
-            });
-            this.room.on('removeStream', (stream) => {
-                this.props.update({
-                    remoteStream: {remove: stream}
-                });
-            });
-            this.room.on('close', () => {
-                console.warn('room is closed.');
-            });
-            this.room.on('peerJoin', () => {
-                console.log('peerJoin');
-            });
-        }, (err) => {
-            console.error(err);
-        });
+        this.isWebinarStarted = false;
     }
     render () {
-        const buttonDisabled = !this.props.isPeerOpen;
         if (this.props.mode === 'audience') {
+            if (!this.isWebinarStarted) {
+                this.isWebinarStarted = true;
+                webinar.bind(this)(undefined, 160, 90, true);
+            }
             return (
                 <div>
                     <h1>視聴者</h1>
-                    <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
                     <h2>自分</h2>
                     <LocalVideo localStream={this.props.localStream} />
                     <h2>講師</h2>
@@ -266,6 +151,84 @@ class RemoteVideos extends Component {
             </div>
         )
     }
+}
+
+function webinar(peerId, width, height, isMuted) {
+    function connectToSkyWay(_peerId, _width, _height, _isMuted) {
+        if (_peerId) {
+            this.peer = new Peer(_peerId, {
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
+                debug: 3
+            });
+        } else {
+            this.peer = new Peer({
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
+                debug: 3
+            });
+        }
+        this.peer.on('open', () => {
+            showLocalVideo.bind(this)(_width, _height, _isMuted);
+        });
+        this.peer.on('error', (err) => {
+            console.error(err.message);
+        });
+    }
+    function showLocalVideo(__width, __height, __isMuted) {
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        const videoConstraints
+            = navigator.webkitGetUserMedia
+            ? // for chrome
+        {
+            mandatory: {
+                maxWidth: __width,
+                maxHeight: __height,
+                maxFrameRate: 5
+            }
+        }
+            : // for firefox
+        {
+            width: __width,
+            height: __height,
+            facingMode: 'user'
+        };
+        navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
+            if (isMuted) {
+                stream.getAudioTracks().forEach((track) => {
+                    track.enabled = false;
+                });
+                stream.getVideoTracks().forEach((track) => {
+                    track.enabled = false;
+                });
+            }
+            this.props.update({
+                localStream: stream
+            });
+            showRemoteVideo.bind(this)(stream);
+        }, (err) => {
+            console.error(err);
+        });
+    }
+    function showRemoteVideo(_stream) {
+        const roomName = this.props.roomName;
+        this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
+        this.room.on('stream', (_stream) => {
+            this.props.update({
+                remoteStream: {add: _stream}
+            });
+        });
+        this.room.on('removeStream', (_stream) => {
+            this.props.update({
+                remoteStream: {remove: _stream}
+            });
+        });
+        this.room.on('close', () => {
+            console.warn('room is closed.');
+        });
+        this.room.on('peerJoin', () => {
+            console.log('peerJoin');
+        });
+    }
+    connectToSkyWay.bind(this)(peerId, width, height, isMuted);
 }
 
 export default App;
