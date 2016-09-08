@@ -87,8 +87,8 @@ class SpeakerUi extends Component {
             ? // for chrome
                 {
                     mandatory: {
-                        maxWidth: 160,
-                        maxHeight: 90,
+                        maxWidth: 640,
+                        maxHeight: 360,
                         maxFrameRate: 5
                     }
                 }
@@ -131,48 +131,15 @@ class SpeakerUi extends Component {
                 <div>
                     <h1>講師</h1>
                     <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
+                    <h2>自分</h2>
                     <LocalVideo localStream={this.props.localStream} />
-                    <RemoteVideos remoteStreams={this.props.remoteStreams} />
+                    <h2>聴衆</h2>
+                    <RemoteVideos remoteStreams={this.props.remoteStreams} target="audience" />
                 </div>
             );
         } else {
             return false;
         }
-    }
-}
-
-class LocalVideo extends Component {
-    render () {
-        let localVideoNode;
-        if (this.props.localStream) {
-            const url = URL.createObjectURL(this.props.localStream)
-            localVideoNode = (() => {return (
-                <video autoPlay src={url} />
-            )})();  // 即時実行
-        }
-        return (
-            <div>
-                <h2>ローカルビデオ</h2>
-                {localVideoNode}
-            </div>
-        )
-    }
-}
-
-class RemoteVideos extends Component {
-    render () {
-        const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
-            const url = URL.createObjectURL(stream)
-            return (
-                <video autoPlay src={url} />
-            )
-        })
-        return (
-            <div>
-                <h2>リモートビデオ</h2>
-                {remoteStreamNodes}
-            </div>
-        )
     }
 }
 
@@ -249,13 +216,55 @@ class AudienceUi extends Component {
                 <div>
                     <h1>視聴者</h1>
                     <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
+                    <h2>自分</h2>
                     <LocalVideo localStream={this.props.localStream} />
-                    <RemoteVideos remoteStreams={this.props.remoteStreams} />
+                    <h2>講師</h2>
+                    <RemoteVideos remoteStreams={this.props.remoteStreams} target="speaker" />
                 </div>
             );
         } else {
             return false;
         }
+    }
+}
+
+class LocalVideo extends Component {
+    render () {
+        let localVideoNode;
+        if (this.props.localStream) {
+            const url = URL.createObjectURL(this.props.localStream)
+            localVideoNode = (() => {return (
+                <video autoPlay src={url} />
+            )})();  // 即時実行
+        }
+        return (
+            <div>
+                {localVideoNode}
+            </div>
+        )
+    }
+}
+
+class RemoteVideos extends Component {
+    render () {
+        const target = this.props.target;
+        const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
+            if (target === 'audience' && stream.peerId === 'speaker') {
+                return false;
+            }
+            if (target === 'speaker' && stream.peerId !== 'speaker') {
+                return false;
+            }
+            const url = URL.createObjectURL(stream)
+            return (
+                <video autoPlay src={url} />
+            )
+        })
+        return (
+            <div>
+                {remoteStreamNodes}
+            </div>
+        )
     }
 }
 
