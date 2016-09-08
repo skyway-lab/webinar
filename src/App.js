@@ -6,21 +6,33 @@ class App extends Component {
         super(props);
         this.state = {
             localStream: undefined,
-            remoteStreams: []
+            remoteStreams: [],
+            isPeerOpen: false
         };
         this.update = this.update.bind(this); // es6対応
     }
     update (newState) {
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
+        let remoteStreams = this.state.remoteStreams;
+        if (newState.remoteStream && newState.remoteStream.add) {
+            remoteStreams.push(newState.remoteStream.add);
+        }
+        if (newState.remoteStream && newState.remoteStream.remove) {
+            remoteStreams = remoteStreams.filter((stream) => {
+                return stream !== newState.remoteStream.remove;
+            });
+        }
+        const isPeerOpen = newState.isPeerOpen ? newState.isPeerOpen : this.state.isPeerOpen;
         this.setState({
             localStream: localStream,
-            remoteStreams: []
+            remoteStreams: remoteStreams,
+            isPeerOpen: isPeerOpen
         });
     }
     render() {
         return (
             <div className="App">
-                <SpeakerUi roomName="skyway-webinar" update={this.update} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} ></SpeakerUi>
+                <SpeakerUi roomName="skyway_webinar" update={this.update} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} isPeerOpen={this.state.isPeerOpen} ></SpeakerUi>
             </div>
         );
     }
@@ -34,7 +46,9 @@ class SpeakerUi extends Component {
             debug: 3
         });
         this.peer.on('open', () => {
-            console.log('peer.id is ' + this.peer.id);
+            this.props.update({
+                isPeerOpen: true
+            })
         });
         this.peer.on('error', (err) => {
             console.error(err.message);
@@ -46,34 +60,52 @@ class SpeakerUi extends Component {
             = navigator.webkitGetUserMedia
             ? // for chrome
                 {
-                    "mandatory": {
-                        "maxWidth": "320",
-                        "maxHeight": "180",
-                        "maxFrameRate": "5"
-                    },
-                    "optional": []
+                    mandatory: {
+                        maxWidth: 160,
+                        maxHeight: 90,
+                        maxFrameRate: 5
+                    }
                 }
             : // for firefox
                 {
-                    "width": { max: 320 },
-                    "height": { max: 180 },
-                    "facingMode": "user"
+                    width: 160,
+                    height: 90,
+                    facingMode: 'user'
                 };
         const roomName = this.props.roomName;
         navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
-            this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: stream});
             this.props.update({
                 localStream: stream
+            });
+            this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: stream});
+            this.room.on('stream', (stream) => {
+                this.props.update({
+                    remoteStream: {add: stream}
+                });
+            });
+            this.room.on('removeStream', (stream) => {
+                this.props.update({
+                    remoteStream: {remove: stream}
+                });
+            });
+            this.room.on('close', () => {
+                console.warn('room is closed.');
+            });
+            this.room.on('peerJoin', () => {
+                console.log('peerJoin');
             });
         }, (err) => {
             console.error(err);
         });
     }
     render () {
+        const buttonDisabled = !this.props.isPeerOpen;
+        console.log('isPeerOpen = ' + this.props.isPeerOpen);
+        console.log('buttonDisabled = ' + buttonDisabled);
         return (
             <div>
                 <h1>講師</h1>
-                <button onClick={this._onClick.bind(this)} >Call</button>
+                <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
                 <LocalVideo localStream={this.props.localStream} />
                 <RemoteVideos remoteStreams={this.props.remoteStreams} />
             </div>
@@ -102,8 +134,9 @@ class LocalVideo extends Component {
 class RemoteVideos extends Component {
     render () {
         const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
+            const url = URL.createObjectURL(stream)
             return (
-                <video></video>
+                <video autoPlay src={url} />
             )
         })
         return (
