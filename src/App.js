@@ -67,7 +67,7 @@ class SelectMode extends Component {
 class SpeakerUi extends Component {
     constructor (props) {
         super(props);
-        this.peer = new Peer({
+        this.peer = new Peer('speaker', {
             key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
             debug: 3
         });
@@ -212,6 +212,12 @@ class AudienceUi extends Component {
         };
         const roomName = this.props.roomName;
         navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
+            stream.getAudioTracks().forEach((track) => {
+                track.enabled = false;
+            });
+            stream.getVideoTracks().forEach((track) => {
+                track.enabled = false;
+            });
             this.props.update({
                 localStream: stream
             });
