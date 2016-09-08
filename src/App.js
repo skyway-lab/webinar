@@ -5,6 +5,7 @@ class App extends Component {
     constructor (props) {
         super(props);
         this.state = {
+            mode: undefined,
             localStream: undefined,
             remoteStreams: [],
             isPeerOpen: false
@@ -12,6 +13,7 @@ class App extends Component {
         this.update = this.update.bind(this); // es6対応
     }
     update (newState) {
+        const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
         let remoteStreams = this.state.remoteStreams;
         if (newState.remoteStream && newState.remoteStream.add) {
@@ -24,6 +26,7 @@ class App extends Component {
         }
         const isPeerOpen = newState.isPeerOpen ? newState.isPeerOpen : this.state.isPeerOpen;
         this.setState({
+            mode: mode,
             localStream: localStream,
             remoteStreams: remoteStreams,
             isPeerOpen: isPeerOpen
@@ -32,9 +35,32 @@ class App extends Component {
     render() {
         return (
             <div className="App">
-                <SpeakerUi roomName="skyway_webinar" update={this.update} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} isPeerOpen={this.state.isPeerOpen} ></SpeakerUi>
+                <SelectMode update={this.update} mode={this.state.mode} />
+                <SpeakerUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} isPeerOpen={this.state.isPeerOpen}></SpeakerUi>
+                <AudienceUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} isPeerOpen={this.state.isPeerOpen}/>
             </div>
         );
+    }
+}
+
+class SelectMode extends Component {
+    _onClick (event) {
+        this.props.update({
+            mode: event.target.dataset.mode
+        });
+    }
+    render () {
+        if (!this.props.mode) {
+            return (
+                <div>
+                    <h1>モード選択</h1>
+                    <button data-mode="speaker" onClick={this._onClick.bind(this)}>Speaker</button>
+                    <button data-mode="audience" onClick={this._onClick.bind(this)}>Audience</button>
+                </div>
+            );
+        } else {
+            return false;
+        }
     }
 }
 
@@ -100,16 +126,18 @@ class SpeakerUi extends Component {
     }
     render () {
         const buttonDisabled = !this.props.isPeerOpen;
-        console.log('isPeerOpen = ' + this.props.isPeerOpen);
-        console.log('buttonDisabled = ' + buttonDisabled);
-        return (
-            <div>
-                <h1>講師</h1>
-                <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
-                <LocalVideo localStream={this.props.localStream} />
-                <RemoteVideos remoteStreams={this.props.remoteStreams} />
-            </div>
-        );
+        if (this.props.mode === 'speaker') {
+            return (
+                <div>
+                    <h1>講師</h1>
+                    <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
+                    <LocalVideo localStream={this.props.localStream} />
+                    <RemoteVideos remoteStreams={this.props.remoteStreams} />
+                </div>
+            );
+        } else {
+            return false;
+        }
     }
 }
 
@@ -145,6 +173,83 @@ class RemoteVideos extends Component {
                 {remoteStreamNodes}
             </div>
         )
+    }
+}
+
+class AudienceUi extends Component {
+    constructor (props) {
+        super(props);
+        this.peer = new Peer({
+            key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
+            debug: 3
+        });
+        this.peer.on('open', () => {
+            this.props.update({
+                isPeerOpen: true
+            })
+        });
+        this.peer.on('error', (err) => {
+            console.error(err.message);
+        });
+    }
+    _onClick () {
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        const videoConstraints
+            = navigator.webkitGetUserMedia
+            ? // for chrome
+        {
+            mandatory: {
+                maxWidth: 160,
+                maxHeight: 90,
+                maxFrameRate: 5
+            }
+        }
+            : // for firefox
+        {
+            width: 160,
+            height: 90,
+            facingMode: 'user'
+        };
+        const roomName = this.props.roomName;
+        navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
+            this.props.update({
+                localStream: stream
+            });
+            this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: stream});
+            this.room.on('stream', (stream) => {
+                this.props.update({
+                    remoteStream: {add: stream}
+                });
+            });
+            this.room.on('removeStream', (stream) => {
+                this.props.update({
+                    remoteStream: {remove: stream}
+                });
+            });
+            this.room.on('close', () => {
+                console.warn('room is closed.');
+            });
+            this.room.on('peerJoin', () => {
+                console.log('peerJoin');
+            });
+        }, (err) => {
+            console.error(err);
+        });
+    }
+    render () {
+        const buttonDisabled = !this.props.isPeerOpen;
+        if (this.props.mode === 'audience') {
+            return (
+                <div>
+                    <h1>視聴者</h1>
+                    <button disabled={buttonDisabled} onClick={this._onClick.bind(this)} >Call</button>
+                    <LocalVideo localStream={this.props.localStream} />
+                    <RemoteVideos remoteStreams={this.props.remoteStreams} />
+                </div>
+            );
+        } else {
+            return false;
+        }
     }
 }
 
