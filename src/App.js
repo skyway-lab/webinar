@@ -7,9 +7,12 @@ class App extends Component {
         this.state = {
             mode: undefined,
             localStream: undefined,
-            remoteStreams: []
+            remoteStreams: [],
+            answerStatus: [],
+            questionStatus: 'none',
+            room: undefined
         };
-        this.update = this.update.bind(this); // es6対応
+        this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
     update (newState) {
         const mode = newState.mode ? newState.mode : this.state.mode;
@@ -23,18 +26,34 @@ class App extends Component {
                 return stream !== newState.remoteStream.remove;
             });
         }
+        let answerStatus = this.state.answerStatus;
+        if (newState.answerStatus && newState.answerStatus.add) {
+            answerStatus.push(newState.answerStatus.add);
+        }
+        if (newState.answerStatus && newState.answerStatus.remove) {
+            answerStatus = answerStatus.filter((status) => {
+                return true;    //ここから再開
+            });
+        }
+        if (newState.answerStatus && newState.answerStatus.remove) {
+        }
+        const questionStatus = newState.questionStatus ? newState.questionStatus : this.state.questionStatus;
+        const room = newState.room ? newState.room : this.state.room;
         this.setState({
             mode: mode,
             localStream: localStream,
-            remoteStreams: remoteStreams
+            remoteStreams: remoteStreams,
+            answerStatus: [],
+            questionStatus: questionStatus,
+            room: room
         });
     }
     render() {
         return (
             <div className="App">
                 <SelectMode update={this.update} mode={this.state.mode} />
-                <SpeakerUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} isPeerOpen={this.state.isPeerOpen}></SpeakerUi>
-                <AudienceUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} isPeerOpen={this.state.isPeerOpen}/>
+                <SpeakerUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} />
+                <AudienceUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} questionStatus={this.state.questionStatus} room={this.state.room} />
             </div>
         );
     }
@@ -67,23 +86,22 @@ class SpeakerUi extends Component {
         this.isWebinarStarted = false;
     }
     render () {
-        if (this.props.mode === 'speaker') {
-            if (!this.isWebinarStarted) {
-                this.isWebinarStarted = true;
-                webinar.bind(this)('speaker', 640, 360, false);
-            }
-            return (
-                <div>
-                    <h1>講師</h1>
-                    <h2>自分</h2>
-                    <LocalVideo localStream={this.props.localStream} />
-                    <h2>聴衆</h2>
-                    <RemoteVideos remoteStreams={this.props.remoteStreams} target="audience" />
-                </div>
-            );
-        } else {
+        if (this.props.mode !== 'speaker') {
             return false;
         }
+        if (!this.isWebinarStarted) {
+            this.isWebinarStarted = true;
+            webinar.bind(this)('speaker', 640, 360, false);
+        }
+        return (
+            <div>
+                <h1>講師</h1>
+                <h2>自分</h2>
+                <LocalVideo localStream={this.props.localStream} peerId={this.props.peerId} />
+                <h2>聴衆</h2>
+                <RemoteVideos remoteStreams={this.props.remoteStreams} mode={this.props.mode} />
+            </div>
+        );
     }
 }
 
@@ -93,83 +111,135 @@ class AudienceUi extends Component {
         this.isWebinarStarted = false;
     }
     render () {
-        if (this.props.mode === 'audience') {
-            if (!this.isWebinarStarted) {
-                this.isWebinarStarted = true;
-                webinar.bind(this)(undefined, 160, 90, true);
-            }
-            return (
-                <div>
-                    <h1>視聴者</h1>
-                    <h2>自分</h2>
-                    <LocalVideo localStream={this.props.localStream} />
-                    <h2>講師</h2>
-                    <RemoteVideos remoteStreams={this.props.remoteStreams} target="speaker" />
-                </div>
-            );
-        } else {
+        if (this.props.mode !== 'audience') {
             return false;
         }
+        if (!this.isWebinarStarted) {
+            this.isWebinarStarted = true;
+            webinar.bind(this)(undefined, 160, 90, true);
+        }
+        return (
+            <div>
+                <h1>視聴者</h1>
+                <h2>自分</h2>
+                <LocalVideo localStream={this.props.localStream} mode={this.props.mode} />
+                <Question update={this.props.update} peerId={this.props.peerId} questionStatus={this.props.questionStatus} room={this.props.room} />
+                <h2>講師</h2>
+                <RemoteVideos remoteStreams={this.props.remoteStreams} mode={this.props.mode} />
+            </div>
+        );
     }
 }
 
 class LocalVideo extends Component {
     render () {
-        let localVideoNode;
-        if (this.props.localStream) {
-            const url = URL.createObjectURL(this.props.localStream)
-            localVideoNode = (() => {return (
-                <video autoPlay src={url} />
-            )})();  // 即時実行
+        if (!this.props.localStream) {
+            return false;
         }
+        const url = URL.createObjectURL(this.props.localStream);
         return (
             <div>
-                {localVideoNode}
+                <video autoPlay src={url} />
             </div>
-        )
+        );
+    }
+}
+
+class Question extends Component {
+    _onClick (event) {
+        const msg = event.target.dataset.msg;
+        const newStatus = event.target.dataset.newStatus;
+        this.props.room.send(msg);
+        this.props.update({questionStatus: newStatus});
+    }
+    render () {
+        switch (this.props.questionStatus) {
+            case 'none':
+                return (
+                    <div>
+                        <button onClick={this._onClick.bind(this)} data-msg="question" data-new-status="waiting">質問する</button>
+                    </div>
+                );
+            case 'waiting':
+                return (
+                    <div>
+                        <button disabled>質問待ち</button>
+                        <button onClick={this._onClick.bind(this)} data-msg="cancel" data-new-status="none">終了</button>
+                    </div>
+                );
+            case 'doing':
+                return (
+                    <div>
+                        <button disabled>質問中</button>
+                        <button onClick={this._onClick.bind(this)} data-msg="cancel" data-new-status="none">終了</button>
+                    </div>
+                );
+            default:
+                return false;
+        }
     }
 }
 
 class RemoteVideos extends Component {
     render () {
-        const target = this.props.target;
+        const mode = this.props.mode;
         const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
-            if (target === 'audience' && stream.peerId === 'speaker') {
-                return false;
+            const url = URL.createObjectURL(stream);
+            if (mode === 'audience') {
+                if (stream.peerId !== 'speaker') {
+                    return false;
+                }
+                return (
+                    <div>
+                        <video autoPlay src={url} />
+                    </div>
+                );
             }
-            if (target === 'speaker' && stream.peerId !== 'speaker') {
-                return false;
-            }
-            const url = URL.createObjectURL(stream)
             return (
-                <video autoPlay src={url} />
-            )
-        })
+                <div>
+                    <video autoPlay src={url} />
+                    <Answer peerId={stream.peerId} />
+                </div>
+            );
+        });
         return (
             <div>
                 {remoteStreamNodes}
             </div>
-        )
+        );
+    }
+}
+
+class Answer extends Component {
+    render () {
+        return (
+            <div>
+                <button disabled>許可する</button>
+                <button>許可する</button>
+                <button>終了</button>
+            </div>
+        );
     }
 }
 
 function webinar(peerId, width, height, isMuted) {
+    let peer;
     function connectToSkyWay(_peerId, _width, _height, _isMuted) {
         if (_peerId) {
-            this.peer = new Peer(_peerId, {
+            peer = new Peer(_peerId, {
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
                 debug: 3
             });
         } else {
-            this.peer = new Peer({
+            peer = new Peer({
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
                 debug: 3
             });
         }
-        this.peer.on('open', () => {
+        peer.on('open', () => {
             showLocalVideo.bind(this)(_width, _height, _isMuted);
         });
-        this.peer.on('error', (err) => {
+        peer.on('error', (err) => {
             console.error(err.message);
         });
     }
@@ -210,22 +280,31 @@ function webinar(peerId, width, height, isMuted) {
     }
     function showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
-        this.room = this.peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
-        this.room.on('stream', (_stream) => {
+        const room = peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
+        this.props.update({
+            room: room
+        });
+        room.on('stream', (_stream) => {
+            const answerStatus = {};
+            answerStatus[_stream.peerId] = 'none';
             this.props.update({
-                remoteStream: {add: _stream}
+                remoteStream: {add: _stream},
+                answerStatus: {add: answerStatus}
             });
         });
-        this.room.on('removeStream', (_stream) => {
+        room.on('removeStream', (_stream) => {
             this.props.update({
                 remoteStream: {remove: _stream}
             });
         });
-        this.room.on('close', () => {
+        room.on('close', () => {
             console.warn('room is closed.');
         });
-        this.room.on('peerJoin', () => {
+        room.on('peerJoin', () => {
             console.log('peerJoin');
+        });
+        room.on('data', (msg) => {
+            console.log(msg.src + ', ' + msg.data);
         });
     }
     connectToSkyWay.bind(this)(peerId, width, height, isMuted);
