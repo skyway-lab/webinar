@@ -8,9 +8,11 @@ class App extends Component {
             mode: undefined,
             localStream: undefined,
             remoteStreams: [],
-            answerStatus: [],
-            questionStatus: 'none',
-            room: undefined
+            waitingPeers: [],
+            talkingPeer: undefined,
+            talkingStatus: 'none',
+            room: undefined,
+            peerId: undefined
         };
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
@@ -18,42 +20,64 @@ class App extends Component {
         const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
         let remoteStreams = this.state.remoteStreams;
-        if (newState.remoteStream && newState.remoteStream.add) {
-            remoteStreams.push(newState.remoteStream.add);
+        if (newState.remoteStreams && newState.remoteStreams.add) {
+            remoteStreams.push(newState.remoteStreams.add);
         }
-        if (newState.remoteStream && newState.remoteStream.remove) {
+        if (newState.remoteStreams && newState.remoteStreams.remove) {
             remoteStreams = remoteStreams.filter((stream) => {
-                return stream !== newState.remoteStream.remove;
+                return stream !== newState.remoteStreams.remove;
             });
         }
-        let answerStatus = this.state.answerStatus;
-        if (newState.answerStatus && newState.answerStatus.add) {
-            answerStatus.push(newState.answerStatus.add);
+        let waitingPeers = this.state.waitingPeers;
+        if (newState.waitingPeers && newState.waitingPeers.add) {
+            waitingPeers.push(newState.waitingPeers.add);
         }
-        if (newState.answerStatus && newState.answerStatus.remove) {
-            answerStatus = answerStatus.filter((status) => {
-                return true;    //ここから再開
+        if (newState.waitingPeers && newState.waitingPeers.remove) {
+            waitingPeers = waitingPeers.filter((peerId) => {
+                return peerId !== newState.waitingPeers.remove;
             });
         }
-        if (newState.answerStatus && newState.answerStatus.remove) {
-        }
-        const questionStatus = newState.questionStatus ? newState.questionStatus : this.state.questionStatus;
+        const talkingPeer = newState.hasOwnProperty('talkingPeer') ? newState.talkingPeer : this.state.talkingPeer;
+        const talkingStatus = newState.talkingStatus ? newState.talkingStatus : this.state.talkingStatus;
         const room = newState.room ? newState.room : this.state.room;
-        this.setState({
+        const peerId = newState.peerId ? newState.peerId : this.state.peerId;
+        const settingState = {
             mode: mode,
             localStream: localStream,
             remoteStreams: remoteStreams,
-            answerStatus: [],
-            questionStatus: questionStatus,
-            room: room
-        });
+            waitingPeers: waitingPeers,
+            talkingPeer: talkingPeer,
+            talkingStatus: talkingStatus,
+            room: room,
+            peerId: peerId
+        };
+        console.log('state = ');
+        console.log(settingState);
+        this.setState(settingState);
     }
     render() {
         return (
             <div className="App">
                 <SelectMode update={this.update} mode={this.state.mode} />
-                <SpeakerUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} />
-                <AudienceUi roomName="skyway_webinar" update={this.update} mode={this.state.mode} localStream={this.state.localStream} remoteStreams={this.state.remoteStreams} questionStatus={this.state.questionStatus} room={this.state.room} />
+                <SpeakerUi
+                    roomName="skyway_webinar"
+                    update={this.update}
+                    mode={this.state.mode}
+                    localStream={this.state.localStream}
+                    remoteStreams={this.state.remoteStreams}
+                    waitingPeers={this.state.waitingPeers}
+                    talkingPeer={this.state.talkingPeer}
+                    room={this.state.room} />
+                <AudienceUi
+                    roomName="skyway_webinar"
+                    update={this.update}
+                    mode={this.state.mode}
+                    localStream={this.state.localStream}
+                    remoteStreams={this.state.remoteStreams}
+                    waitingPeers={this.state.waitingPeers}
+                    talkingPeer={this.state.talkingPeer}
+                    room={this.state.room}
+                    talkingStatus={this.state.talkingStatus} />
             </div>
         );
     }
@@ -99,7 +123,7 @@ class SpeakerUi extends Component {
                 <h2>自分</h2>
                 <LocalVideo localStream={this.props.localStream} peerId={this.props.peerId} />
                 <h2>聴衆</h2>
-                <RemoteVideos remoteStreams={this.props.remoteStreams} mode={this.props.mode} />
+                <RemoteVideos remoteStreams={this.props.remoteStreams} mode={this.props.mode} waitingPeers={this.props.waitingPeers} talkingPeer={this.props.talkingPeer} room={this.props.room} update={this.props.update} />
             </div>
         );
     }
@@ -122,10 +146,17 @@ class AudienceUi extends Component {
             <div>
                 <h1>視聴者</h1>
                 <h2>自分</h2>
-                <LocalVideo localStream={this.props.localStream} mode={this.props.mode} />
-                <Question update={this.props.update} peerId={this.props.peerId} questionStatus={this.props.questionStatus} room={this.props.room} />
+                <LocalVideo localStream={this.props.localStream} />
                 <h2>講師</h2>
-                <RemoteVideos remoteStreams={this.props.remoteStreams} mode={this.props.mode} />
+                <RemoteVideos
+                    localStream={this.props.localStream}
+                    remoteStreams={this.props.remoteStreams}
+                    mode={this.props.mode}
+                    waitingPeers={this.props.waitingPeers}
+                    talkingPeer={this.props.talkingPeer}
+                    update={this.props.update}
+                    talkingStatus={this.props.talkingStatus}
+                    room={this.props.room} />
             </div>
         );
     }
@@ -145,41 +176,6 @@ class LocalVideo extends Component {
     }
 }
 
-class Question extends Component {
-    _onClick (event) {
-        const msg = event.target.dataset.msg;
-        const newStatus = event.target.dataset.newStatus;
-        this.props.room.send(msg);
-        this.props.update({questionStatus: newStatus});
-    }
-    render () {
-        switch (this.props.questionStatus) {
-            case 'none':
-                return (
-                    <div>
-                        <button onClick={this._onClick.bind(this)} data-msg="question" data-new-status="waiting">質問する</button>
-                    </div>
-                );
-            case 'waiting':
-                return (
-                    <div>
-                        <button disabled>質問待ち</button>
-                        <button onClick={this._onClick.bind(this)} data-msg="cancel" data-new-status="none">終了</button>
-                    </div>
-                );
-            case 'doing':
-                return (
-                    <div>
-                        <button disabled>質問中</button>
-                        <button onClick={this._onClick.bind(this)} data-msg="cancel" data-new-status="none">終了</button>
-                    </div>
-                );
-            default:
-                return false;
-        }
-    }
-}
-
 class RemoteVideos extends Component {
     render () {
         const mode = this.props.mode;
@@ -192,13 +188,23 @@ class RemoteVideos extends Component {
                 return (
                     <div>
                         <video autoPlay src={url} />
+                        <Question
+                            localStream={this.props.localStream}
+                            update={this.props.update}
+                            talkingStatus={this.props.talkingStatus}
+                            room={this.props.room} />
                     </div>
                 );
             }
             return (
                 <div>
                     <video autoPlay src={url} />
-                    <Answer peerId={stream.peerId} />
+                    <Answer
+                        peerId={stream.peerId}
+                        waitingPeers={this.props.waitingPeers}
+                        talkingPeer={this.props.talkingPeer}
+                        room={this.props.room}
+                        update={this.props.update} />
                 </div>
             );
         });
@@ -210,15 +216,93 @@ class RemoteVideos extends Component {
     }
 }
 
-class Answer extends Component {
+class Question extends Component {
+    _onClick (event) {
+        const newStatus = event.target.dataset.newStatus;
+        this.props.room.send(newStatus);
+        this.props.update({talkingStatus: newStatus});
+        if (newStatus === 'none') {
+            this.props.localStream.getAudioTracks().forEach((track) => {
+                track.enabled = false;
+            });
+            this.props.localStream.getVideoTracks().forEach((track) => {
+                track.enabled = false;
+            });
+        }
+    }
     render () {
-        return (
-            <div>
-                <button disabled>許可する</button>
-                <button>許可する</button>
-                <button>終了</button>
-            </div>
-        );
+        switch (this.props.talkingStatus) {
+            case 'none':
+                return (
+                    <div>
+                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">呼び出し</button>
+                    </div>
+                );
+            case 'waiting':
+                return (
+                    <div>
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">キャンセル</button>
+                    </div>
+                );
+            case 'talking':
+                return (
+                    <div>
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">通話終了</button>
+                    </div>
+                );
+            default:
+                return false;
+        }
+    }
+}
+
+class Answer extends Component {
+    _onClick (event) {
+        const peerId = this.props.peerId;
+        const newStatus = event.target.dataset.newStatus;
+        this.props.room.send([newStatus, peerId]);
+        let talkingPeer = this.props.talkingPeer;
+        let waitingPeers = this.props.waitingPeers;
+        switch (newStatus) {
+            case 'none':
+                talkingPeer = undefined;
+                waitingPeers = {remove: peerId};
+                break;
+            case 'talking':
+                if (talkingPeer) {
+                    this.props.room.send(['none', talkingPeer]);
+                    waitingPeers = {remove: talkingPeer};
+                }
+                talkingPeer = peerId;
+                break;
+            default:
+                break;
+        }
+        this.props.update({talkingPeer: talkingPeer, waitingPeers: waitingPeers});
+    }
+    render () {
+        const peerId = this.props.peerId;
+        const waitingPeers = this.props.waitingPeers;
+        const talkingPeer = this.props.talkingPeer;
+        if (talkingPeer === peerId) {
+            return (
+                <div>
+                    <button onClick={this._onClick.bind(this)} data-new-status="none">通話終了</button>
+                </div>
+            );
+        } else if (waitingPeers && waitingPeers.includes(peerId)) {
+            return (
+                <div>
+                    <button onClick={this._onClick.bind(this)} data-new-status="talking">許可する</button>
+                </div>
+            );
+        } else {
+            return (
+                <div>
+                    <button disabled>許可する</button>
+                </div>
+            );
+        }
     }
 }
 
@@ -228,16 +312,17 @@ function webinar(peerId, width, height, isMuted) {
         if (_peerId) {
             peer = new Peer(_peerId, {
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
-                debug: 3
+                debug: 1
             });
         } else {
             peer = new Peer({
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
-                debug: 3
+                debug: 1
             });
         }
         peer.on('open', () => {
             showLocalVideo.bind(this)(_width, _height, _isMuted);
+            this.props.update({peerId: peer.id});
         });
         peer.on('error', (err) => {
             console.error(err.message);
@@ -285,26 +370,45 @@ function webinar(peerId, width, height, isMuted) {
             room: room
         });
         room.on('stream', (_stream) => {
-            const answerStatus = {};
-            answerStatus[_stream.peerId] = 'none';
             this.props.update({
-                remoteStream: {add: _stream},
-                answerStatus: {add: answerStatus}
+                remoteStreams: {add: _stream}
             });
         });
         room.on('removeStream', (_stream) => {
             this.props.update({
-                remoteStream: {remove: _stream}
+                remoteStreams: {remove: _stream}
             });
         });
         room.on('close', () => {
             console.warn('room is closed.');
         });
         room.on('peerJoin', () => {
-            console.log('peerJoin');
         });
         room.on('data', (msg) => {
             console.log(msg.src + ', ' + msg.data);
+            if (this.props.mode === 'speaker') {
+                if (msg.data === 'waiting') {
+                    this.props.update({waitingPeers: {add: msg.src}});
+                } else if (msg.data === 'none') {
+                    this.props.update({waitingPeers: {remove: msg.src}});
+                    this.props.update({talkingPeer: undefined});
+                }
+            } else if (this.props.mode === 'audience' && msg.data[1] === this.props.localStream.peerId) {
+                if (msg.data[0] === 'none') {
+                    this.props.update({talkingStatus: 'none'});
+                    this.props.localStream.getAudioTracks().forEach((track) => {
+                        track.enabled = false;
+                    });
+                    this.props.localStream.getVideoTracks().forEach((track) => {
+                        track.enabled = false;
+                    });
+                } else if (msg.data[0] === 'talking') {
+                    this.props.update({talkingStatus: 'talking'});
+                    this.props.localStream.getAudioTracks().forEach((track) => {
+                        track.enabled = true;
+                    });
+                }
+            }
         });
     }
     connectToSkyWay.bind(this)(peerId, width, height, isMuted);
