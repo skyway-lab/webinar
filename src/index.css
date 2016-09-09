@@ -1,2 +1,9 @@
-body {
+body, #root {
+    margin: 0px;
+    padding: 0px;
+    height: 100vh;
+    background-color: #222;
+    color: #eee;
+    font-family: "Helvetica Neue";
+    font-weight: 100;
 }
