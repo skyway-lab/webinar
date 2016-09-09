@@ -41,7 +41,7 @@ class App extends Component {
         const talkingStatus = newState.talkingStatus ? newState.talkingStatus : this.state.talkingStatus;
         const room = newState.room ? newState.room : this.state.room;
         const myPeerId = newState.myPeerId ? newState.myPeerId : this.state.myPeerId;
-        const settingState = {
+        const state = {
             mode: mode,
             localStream: localStream,
             remoteStreams: remoteStreams,
@@ -51,9 +51,8 @@ class App extends Component {
             room: room,
             myPeerId: myPeerId
         };
-        console.log('state = ');
-        console.log(settingState);
-        this.setState(settingState);
+        console.log(state.waitingPeers.length, state.talkingPeer, state.talkingStatus);
+        this.setState(state);
     }
     render() {
         return (
@@ -124,7 +123,13 @@ class SpeakerUi extends Component {
                 <h2>自分</h2>
                 <LocalVideo localStream={this.props.localStream} />
                 <h2>聴衆</h2>
-                <RemoteVideos remoteStreams={this.props.remoteStreams} mode={this.props.mode} waitingPeers={this.props.waitingPeers} talkingPeer={this.props.talkingPeer} room={this.props.room} update={this.props.update} />
+                <RemoteVideos
+                    remoteStreams={this.props.remoteStreams}
+                    target="audience"
+                    waitingPeers={this.props.waitingPeers}
+                    talkingPeer={this.props.talkingPeer}
+                    room={this.props.room}
+                    update={this.props.update} />
             </div>
         );
     }
@@ -152,12 +157,17 @@ class AudienceUi extends Component {
                 <RemoteVideos
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
-                    mode={this.props.mode}
+                    target="speaker"
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
                     update={this.props.update}
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room} />
+                <h2>質問者</h2>
+                <RemoteVideos
+                    remoteStreams={this.props.remoteStreams}
+                    talkingPeer={this.props.talkingPeer}
+                    target="questioner" />
             </div>
         );
     }
@@ -179,35 +189,48 @@ class LocalVideo extends Component {
 
 class RemoteVideos extends Component {
     render () {
-        const mode = this.props.mode;
+        const target = this.props.target;
         const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
             const url = URL.createObjectURL(stream);
-            if (mode === 'audience') {
-                if (stream.peerId !== 'speaker') {
+            switch (target) {
+                case 'speaker':
+                    if (stream.peerId !== 'speaker') {
+                        return false;
+                    }
+                    return (
+                        <div>
+                            <video autoPlay src={url} />
+                            <Question
+                                localStream={this.props.localStream}
+                                update={this.props.update}
+                                talkingStatus={this.props.talkingStatus}
+                                room={this.props.room} />
+                        </div>
+                    );
+                case 'audience':
+                    return (
+                        <div>
+                            <video autoPlay src={url} />
+                            <Answer
+                                remotePeerId={stream.peerId}
+                                waitingPeers={this.props.waitingPeers}
+                                talkingPeer={this.props.talkingPeer}
+                                room={this.props.room}
+                                update={this.props.update} />
+                        </div>
+                    );
+                case 'questioner':
+                    if (stream.peerId !== this.props.talkingPeer) {
+                        return false;
+                    }
+                    return (
+                        <div>
+                            <video autoPlay src={url} />
+                        </div>
+                    );
+                default:
                     return false;
-                }
-                return (
-                    <div>
-                        <video autoPlay src={url} />
-                        <Question
-                            localStream={this.props.localStream}
-                            update={this.props.update}
-                            talkingStatus={this.props.talkingStatus}
-                            room={this.props.room} />
-                    </div>
-                );
             }
-            return (
-                <div>
-                    <video autoPlay src={url} />
-                    <Answer
-                        remotePeerId={stream.peerId}
-                        waitingPeers={this.props.waitingPeers}
-                        talkingPeer={this.props.talkingPeer}
-                        room={this.props.room}
-                        update={this.props.update} />
-                </div>
-            );
         });
         return (
             <div>
@@ -220,10 +243,12 @@ class RemoteVideos extends Component {
 class Question extends Component {
     _onClick (event) {
         const newStatus = event.target.dataset.newStatus;
-        this.props.room.send(newStatus);
-        this.props.update({talkingStatus: newStatus});
+        let state = {};
         switch (newStatus) {
             case 'none':
+                state.talkingStatus = 'none';
+                state.talkingPeer = undefined;
+                this.props.room.send('none');
                 this.props.localStream.getAudioTracks().forEach((track) => {
                     track.enabled = false;
                 });
@@ -232,12 +257,17 @@ class Question extends Component {
                 });
                 break;
             case 'waiting':
+                state.talkingStatus = 'waiting';
+                this.props.room.send('waiting');
                 this.props.localStream.getVideoTracks().forEach((track) => {
                     track.enabled = true;
                 });
                 break;
             default:
                 break;
+        }
+        if (Object.keys(state).length > 0) {
+            this.props.update(state);
         }
     }
     render () {
@@ -395,29 +425,39 @@ function webinar(myPeerId, width, height, isMuted) {
         room.on('peerJoin', () => {
         });
         room.on('data', (msg) => {
-            console.log(msg.src + ', ' + msg.data);
+            let state = {}
             if (this.props.mode === 'speaker') {
                 if (msg.data === 'waiting') {
-                    this.props.update({waitingPeers: {add: msg.src}});
+                    state.waitingPeers = {add: msg.src};
                 } else if (msg.data === 'none') {
-                    this.props.update({waitingPeers: {remove: msg.src}});
-                    this.props.update({talkingPeer: undefined});
+                    state.waitingPeers = {remove: msg.src};
+                    state.talkingPeer = undefined;
                 }
-            } else if (this.props.mode === 'audience' && msg.data[1] === this.props.myPeerId) {
+            } else if (this.props.mode === 'audience') {
+                if (msg.data[1] === this.props.myPeerId) {
+                    if (msg.data[0] === 'none') {
+                        state.talkingStatus = 'none';
+                        this.props.localStream.getAudioTracks().forEach((track) => {
+                            track.enabled = false;
+                        });
+                        this.props.localStream.getVideoTracks().forEach((track) => {
+                            track.enabled = false;
+                        });
+                    } else if (msg.data[0] === 'talking') {
+                        state.talkingStatus = 'talking';
+                        this.props.localStream.getAudioTracks().forEach((track) => {
+                            track.enabled = true;
+                        });
+                    }
+                }
                 if (msg.data[0] === 'none') {
-                    this.props.update({talkingStatus: 'none'});
-                    this.props.localStream.getAudioTracks().forEach((track) => {
-                        track.enabled = false;
-                    });
-                    this.props.localStream.getVideoTracks().forEach((track) => {
-                        track.enabled = false;
-                    });
+                    state.talkingPeer = undefined;
                 } else if (msg.data[0] === 'talking') {
-                    this.props.update({talkingStatus: 'talking'});
-                    this.props.localStream.getAudioTracks().forEach((track) => {
-                        track.enabled = true;
-                    });
+                    state.talkingPeer = msg.data[1];
                 }
+            }
+            if (Object.keys(state).length > 0) {
+                this.props.update(state);
             }
         });
     }
