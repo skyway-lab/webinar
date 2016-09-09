@@ -92,10 +92,12 @@ class SelectMode extends Component {
     render () {
         if (!this.props.mode) {
             return (
-                <div>
-                    <h1>モード選択</h1>
-                    <button data-mode="speaker" onClick={this._onClick.bind(this)}>Speaker</button>
-                    <button data-mode="audience" onClick={this._onClick.bind(this)}>Audience</button>
+                <div id="SelectMode">
+                    <h1>SkyWay Webinar</h1>
+                    <div className="button-container">
+                        <button data-mode="speaker" onClick={this._onClick.bind(this)}>Speaker</button>
+                        <button data-mode="audience" onClick={this._onClick.bind(this)}>Audience</button>
+                    </div>
                 </div>
             );
         } else {
@@ -118,11 +120,11 @@ class SpeakerUi extends Component {
             webinar.bind(this)('speaker', 640, 360, false);
         }
         return (
-            <div>
-                <h1>講師</h1>
-                <h2>自分</h2>
+            <div id="SpeakerUi">
+                <h1 className="none">講師</h1>
+                <h2 className="none">自分</h2>
                 <LocalVideo localStream={this.props.localStream} />
-                <h2>聴衆</h2>
+                <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     target="audience"
@@ -149,11 +151,9 @@ class AudienceUi extends Component {
             webinar.bind(this)(undefined, 160, 90, true);
         }
         return (
-            <div>
-                <h1>視聴者</h1>
-                <h2>自分</h2>
-                <LocalVideo localStream={this.props.localStream} />
-                <h2>講師</h2>
+            <div id="AudienceUi">
+                <h1 className="none">視聴者</h1>
+                <h2 className="none">講師</h2>
                 <RemoteVideos
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
@@ -163,7 +163,9 @@ class AudienceUi extends Component {
                     update={this.props.update}
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room} />
-                <h2>質問者</h2>
+                <h2 className="none">自分</h2>
+                <LocalVideo localStream={this.props.localStream} />
+                <h2 className="none">質問者</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     talkingPeer={this.props.talkingPeer}
@@ -180,8 +182,8 @@ class LocalVideo extends Component {
         }
         const url = URL.createObjectURL(this.props.localStream);
         return (
-            <div>
-                <video autoPlay src={url} />
+            <div id="LocalVideo">
+                <video autoPlay muted src={url} />
             </div>
         );
     }
@@ -198,7 +200,7 @@ class RemoteVideos extends Component {
                         return false;
                     }
                     return (
-                        <div>
+                        <div className="remote-video-wrapper">
                             <video autoPlay src={url} />
                             <Question
                                 localStream={this.props.localStream}
@@ -209,7 +211,7 @@ class RemoteVideos extends Component {
                     );
                 case 'audience':
                     return (
-                        <div>
+                        <div className="remote-video-wrapper">
                             <video autoPlay src={url} />
                             <Answer
                                 remotePeerId={stream.peerId}
@@ -224,7 +226,7 @@ class RemoteVideos extends Component {
                         return false;
                     }
                     return (
-                        <div>
+                        <div className="remote-video-wrapper">
                             <video autoPlay src={url} />
                         </div>
                     );
@@ -233,7 +235,7 @@ class RemoteVideos extends Component {
             }
         });
         return (
-            <div>
+            <div className={"remote-videos remote-videos-" + target}>
                 {remoteStreamNodes}
             </div>
         );
@@ -274,20 +276,20 @@ class Question extends Component {
         switch (this.props.talkingStatus) {
             case 'none':
                 return (
-                    <div>
-                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">呼び出し</button>
+                    <div className="button-wrapper button-wrapper-call">
+                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">Call</button>
                     </div>
                 );
             case 'waiting':
                 return (
-                    <div>
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">キャンセル</button>
+                    <div className="button-wrapper button-wrapper-cancel">
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">Cancel</button>
                     </div>
                 );
             case 'talking':
                 return (
-                    <div>
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">通話終了</button>
+                    <div className="button-wrapper button-wrapper-disconnect">
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">Disconnect</button>
                     </div>
                 );
             default:
@@ -326,20 +328,20 @@ class Answer extends Component {
         const talkingPeer = this.props.talkingPeer;
         if (talkingPeer === remotePeerId) {
             return (
-                <div>
-                    <button onClick={this._onClick.bind(this)} data-new-status="none">通話終了</button>
+                <div className="button-wrapper button-wrapper-disconnect">
+                    <button onClick={this._onClick.bind(this)} data-new-status="none">Disconnect</button>
                 </div>
             );
         } else if (waitingPeers && waitingPeers.includes(remotePeerId)) {
             return (
-                <div>
-                    <button onClick={this._onClick.bind(this)} data-new-status="talking">許可する</button>
+                <div className="button-wrapper button-wrapper-accept">
+                    <button onClick={this._onClick.bind(this)} data-new-status="talking">Accept</button>
                 </div>
             );
         } else {
             return (
-                <div>
-                    <button disabled>許可する</button>
+                <div className="button-wrapper button-wrapper-videooff">
+                    Video Off
                 </div>
             );
         }

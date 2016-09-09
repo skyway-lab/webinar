@@ -1,0 +1,182 @@
+/* Layout */
+
+.App, #SelectMode, #SpeakerUi, #AudienceUi {
+    margin: 0px;
+    padding: 0px;
+    height: 100vh;
+}
+
+/* SelectMode */
+
+#SelectMode {
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#SelectMode h1 {
+    font-size: 40px;
+    font-weight: 100;
+    letter-spacing: 0.1em;
+}
+
+#SelectMode button {
+    font-size: 24px;
+    width: 160px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+    appearance: none;
+    border: 1px solid #eee;
+    color: #eee;
+    background-color: transparent;
+    margin-right: 10px;
+    line-height: 40px;
+    font-weight: 100;
+    letter-spacing: 0.05em;
+}
+
+#SelectMode button:last-child {
+    margin-right: 0px;
+}
+
+/* SpeakerUi */
+
+#SpeakerUi #LocalVideo {
+    height: 50vh;
+}
+
+#SpeakerUi #LocalVideo video {
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+}
+
+#SpeakerUi .remote-videos-audience {
+    height: 50vh;
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: flex;
+    text-align: center;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper {
+    height: 50vh;
+    flex-basis: 100vw;
+    overflow: hidden;
+    position: relative;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper video {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper {
+    position: absolute;
+    bottom: 0px;
+    text-align: center;
+    width: 100%;
+    font-size: 24px;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-accept button {
+    border: 0;
+    width: 100%;
+    height: 50vh;
+    display: block;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #eee;
+    font-weight: 100;
+    font-size: 24px;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect {
+    bottom: 8px;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect button {
+    border: 0;
+    line-height: 36px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border: #eee double 3px;
+    color: #eee;
+    font-weight: 100;
+    font-size: 24px;
+    padding: 0 12px;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-videooff {
+    height: 50vh;
+    line-height: 50vh;
+    letter-spacing: 0.05em;
+}
+
+/* AudienceUi */
+
+#AudienceUi {
+    position: relative;
+}
+
+#AudienceUi .remote-videos-speaker, #AudienceUi .remote-videos-speaker .remote-video-wrapper {
+    margin: 0px;
+    padding: 0px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#AudienceUi .remote-videos-speaker, #AudienceUi .remote-videos-speaker .remote-video-wrapper video {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+#AudienceUi #LocalVideo {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 160px;
+    height: 90px;
+}
+
+#AudienceUi .button-wrapper {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 160px;
+    height: 90px;
+    z-index: 100;
+    text-align: center;
+}
+
+#AudienceUi .button-wrapper button {
+    border: 0;
+    line-height: 36px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border: #eee double 3px;
+    color: #eee;
+    font-weight: 100;
+    font-size: 24px;
+    padding: 0 12px;
+    margin-top: 24px;
+}
+
+#AudienceUi .remote-videos-questioner .remote-video-wrapper {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    width: 160px;
+    height: 90px;
+}
+
+/* Utilities */
+
+.none {
+    display: none;
+}
