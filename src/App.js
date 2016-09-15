@@ -51,7 +51,6 @@ class App extends Component {
             room: room,
             myPeerId: myPeerId
         };
-        console.log(state.waitingPeers.length, state.talkingPeer, state.talkingStatus);
         this.setState(state);
     }
     render() {
@@ -302,7 +301,6 @@ class Answer extends Component {
     _onClick (event) {
         const remotePeerId = this.props.remotePeerId;
         const newStatus = event.target.dataset.newStatus;
-        this.props.room.send([newStatus, remotePeerId]);
         let talkingPeer = this.props.talkingPeer;
         let waitingPeers = this.props.waitingPeers;
         switch (newStatus) {
@@ -312,7 +310,6 @@ class Answer extends Component {
                 break;
             case 'talking':
                 if (talkingPeer) {
-                    this.props.room.send(['none', talkingPeer]);
                     waitingPeers = {remove: talkingPeer};
                 }
                 talkingPeer = remotePeerId;
@@ -320,6 +317,7 @@ class Answer extends Component {
             default:
                 break;
         }
+        this.props.room.send(talkingPeer);
         this.props.update({talkingPeer: talkingPeer, waitingPeers: waitingPeers});
     }
     render () {
@@ -353,13 +351,11 @@ function webinar(myPeerId, width, height, isMuted) {
     function connectToSkyWay(_myPeerId, _width, _height, _isMuted) {
         if (_myPeerId) {
             peer = new Peer(_myPeerId, {
-                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
-                debug: 1
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
             });
         } else {
             peer = new Peer({
-                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837',
-                debug: 1
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
             });
         }
         peer.on('open', () => {
@@ -412,32 +408,55 @@ function webinar(myPeerId, width, height, isMuted) {
             room: room
         });
         room.on('stream', (_stream) => {
+            console.log('room.on(\'stream\')');
             this.props.update({
                 remoteStreams: {add: _stream}
             });
         });
         room.on('removeStream', (_stream) => {
+            console.log('room.on(\'removeStream\')');
             this.props.update({
                 remoteStreams: {remove: _stream}
             });
         });
         room.on('close', () => {
-            console.warn('room is closed.');
+            console.log('room.on(\'close\')');
         });
-        room.on('peerJoin', () => {
+        room.on('peerJoin', (id) => {
+            console.log('room.on(\'peerJoin\')');
+            console.log(id);
+            if (this.props.mode === 'speaker') {
+                room.send(this.props.talkingPeer);
+            }
+        });
+        room.on('peerLeave', (id) => {
+            console.log('room.on(\'peerLeave\')');
+            console.log(id);
         });
         room.on('data', (msg) => {
-            let state = {}
-            if (this.props.mode === 'speaker') {
-                if (msg.data === 'waiting') {
-                    state.waitingPeers = {add: msg.src};
-                } else if (msg.data === 'none') {
-                    state.waitingPeers = {remove: msg.src};
-                    state.talkingPeer = undefined;
-                }
-            } else if (this.props.mode === 'audience') {
-                if (msg.data[1] === this.props.myPeerId) {
-                    if (msg.data[0] === 'none') {
+            console.log('room.on(\'data\')');
+            console.log(msg);
+            let state = {};
+            switch (this.props.mode) {
+                case 'speaker':
+                    if (msg.data === 'waiting') {
+                        state.waitingPeers = {add: msg.src};
+                    } else if (msg.data === 'none') {
+                        state.waitingPeers = {remove: msg.src};
+                        state.talkingPeer = undefined;
+                    }
+                    break;
+                case 'audience':
+                    if (msg.src !== 'speaker') {
+                        return;
+                    }
+                    if (this.props.talkingPeer === msg.data) {
+                        return;
+                    }
+                    const isTalking = (this.props.talkingStatus === 'talking');
+                    const willDisconnect = (!msg.data) || (msg.data !== this.props.myPeerId);
+                    const willTalk = (msg.data === this.props.myPeerId);
+                    if (isTalking && willDisconnect) {
                         state.talkingStatus = 'none';
                         this.props.localStream.getAudioTracks().forEach((track) => {
                             track.enabled = false;
@@ -445,18 +464,17 @@ function webinar(myPeerId, width, height, isMuted) {
                         this.props.localStream.getVideoTracks().forEach((track) => {
                             track.enabled = false;
                         });
-                    } else if (msg.data[0] === 'talking') {
+                    }
+                    if (!isTalking && willTalk) {
                         state.talkingStatus = 'talking';
                         this.props.localStream.getAudioTracks().forEach((track) => {
                             track.enabled = true;
                         });
                     }
-                }
-                if (msg.data[0] === 'none') {
-                    state.talkingPeer = undefined;
-                } else if (msg.data[0] === 'talking') {
-                    state.talkingPeer = msg.data[1];
-                }
+                    state.talkingPeer = msg.data;
+                    break;
+                default:
+                    break;
             }
             if (Object.keys(state).length > 0) {
                 this.props.update(state);
