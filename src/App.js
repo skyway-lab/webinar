@@ -462,6 +462,13 @@ function webinar(myPeerId, width, height, isMuted) {
                 this.props.update(state);
             }
         });
+        // skyway.js seems to close beforehand.
+        /*
+        window.addEventListener('beforeunload', () => {
+            room.close();
+            console.log('window.on(\'beforeunload\')');
+        }, false);
+        */
     }
     connectToSkyWay.bind(this)(myPeerId, width, height, isMuted);
 }
