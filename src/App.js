@@ -116,7 +116,7 @@ class SpeakerUi extends Component {
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)('speaker', 640, 360, false);
+            webinar.bind(this)('speaker', 640, 360, 1, false);
         }
         return (
             <div id="SpeakerUi">
@@ -147,7 +147,7 @@ class AudienceUi extends Component {
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)(undefined, 160, 90, true);
+            webinar.bind(this)(undefined, 160, 90, 1, true);
         }
         return (
             <div id="AudienceUi">
@@ -346,9 +346,9 @@ class Answer extends Component {
     }
 }
 
-function webinar(myPeerId, width, height, isMuted) {
+function webinar(myPeerId, width, height, framerate, isMuted) {
     let peer;
-    function connectToSkyWay(_myPeerId, _width, _height, _isMuted) {
+    function connectToSkyWay(_myPeerId, _width, _height, _framerate, _isMuted) {
         if (_myPeerId) {
             peer = new Peer(_myPeerId, {
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
@@ -359,14 +359,14 @@ function webinar(myPeerId, width, height, isMuted) {
             });
         }
         peer.on('open', () => {
-            showLocalVideo.bind(this)(_width, _height, _isMuted);
+            showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
             this.props.update({myPeerId: peer.id});
         });
         peer.on('error', (err) => {
             console.error(err.message);
         });
     }
-    function showLocalVideo(__width, __height, __isMuted) {
+    function showLocalVideo(__width, __height, __framerate, __isMuted) {
         navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
         const videoConstraints
             = navigator.webkitGetUserMedia
@@ -375,7 +375,7 @@ function webinar(myPeerId, width, height, isMuted) {
             mandatory: {
                 maxWidth: __width,
                 maxHeight: __height,
-                maxFrameRate: 5
+                maxFrameRate: __framerate
             }
         }
             : // for firefox
