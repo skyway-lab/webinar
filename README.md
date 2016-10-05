@@ -13,7 +13,22 @@ It's one of sample applications of [SFU feature](http://nttcom.github.io/skyway/
     - Audience can apply a question.
     - Speaker can accept a question.
     - Also broadcast questioner's video and voice to audience.
-    
+
+### How to run
+
+- First time
+```
+$ npm install
+```
+- Launch
+```
+$ npm run start
+```
+- Build
+```
+$ npm run build
+```
+
 ### Demo
 
 - https://skyway.github.io/webinar/
