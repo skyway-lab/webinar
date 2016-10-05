@@ -8,7 +8,7 @@ It's one of sample applications of [SFU feature](http://nttcom.github.io/skyway/
 
 ### Features
 
-- broadcast speaker's video and voice to audience.
+- Broadcast speaker's video and voice to audience.
 - In Q&A session,
     - Audience can apply a question.
     - Speaker can accept a question.
