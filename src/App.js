@@ -123,6 +123,7 @@ class SpeakerUi extends Component {
                 <h1 className="none">講師</h1>
                 <h2 className="none">自分</h2>
                 <LocalVideo localStream={this.props.localStream} />
+                <Config />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -343,6 +344,63 @@ class Answer extends Component {
                 </div>
             );
         }
+    }
+}
+
+class Config extends Component {
+    _onChange (event) {
+        console.log(event.target);
+        const screenshare = new SkyWay.ScreenShare({debug: true});
+
+        if (screenshare.isEnabledExtension()) {
+            startScreenShare();
+        } else {
+            installExtension();
+        }
+
+        function startScreenShare() {
+            screenshare.startScreenShare({}, (stream) => {
+                console.log('successed screenshare');
+                // onSuccess
+                // var url = window.URL.createObjectURL(stream);
+                // document.getElementById("video-for-share").src = url;
+            }, function(err) {
+                // onError
+                console.error('[error in starting screen share]', err);
+            }, function() {
+                // onStopscreenshare
+                console.log('stop screen share');
+            });
+        }
+
+        function installExtension() {
+            chrome.webstore.install('', () => {
+                console.log('succeeded to install extension');
+            }, (ev) => {
+                console.error('[error in installing extension]', ev);
+            });
+
+            window.addEventListener('message', function(ev) {
+                if(ev.data.type === "ScreenShareInjected") {
+                    console.log('screen share extension is injected, get ready to use');
+                    startScreenShare();
+                }
+            }, false);
+        }
+    }
+    render () {
+        return (
+            <div id="Config">
+                <label>
+                    <input type="radio" name="videoSource" id="camera" onChange={this._onChange.bind(this)} defaultChecked />
+                    Camera
+                </label>
+                <label>
+                    <input type="radio" name="videoSource" id="screen" onChange={this._onChange.bind(this)} />
+                    Screen
+                </label>
+            </div>
+        );
     }
 }
 
