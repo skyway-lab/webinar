@@ -361,9 +361,7 @@ class Config extends Component {
         function startScreenShare() {
             screenshare.startScreenShare({}, (stream) => {
                 console.log('successed screenshare');
-                // onSuccess
-                // var url = window.URL.createObjectURL(stream);
-                // document.getElementById("video-for-share").src = url;
+                this.props.update({localstream: stream});
             }, function(err) {
                 // onError
                 console.error('[error in starting screen share]', err);
