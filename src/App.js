@@ -5,14 +5,14 @@ class App extends Component {
     constructor (props) {
         super(props);
         this.state = {
-            mode: undefined,
-            localStream: undefined,
+            mode: null,
+            localStream: null,
             remoteStreams: [],
             waitingPeers: [],
-            talkingPeer: undefined,
+            talkingPeer: null,
             talkingStatus: 'none',
-            room: undefined,
-            myPeerId: undefined
+            room: null,
+            myPeerId: null
         };
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
@@ -123,7 +123,7 @@ class SpeakerUi extends Component {
                 <h1 className="none">講師</h1>
                 <h2 className="none">自分</h2>
                 <LocalVideo localStream={this.props.localStream} />
-                <Config />
+                <Config update={this.props.update} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -148,7 +148,7 @@ class AudienceUi extends Component {
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)(undefined, 160, 90, 1, true);
+            webinar.bind(this)(null, 160, 90, 1, true);
         }
         return (
             <div id="AudienceUi">
@@ -249,7 +249,7 @@ class Question extends Component {
         switch (newStatus) {
             case 'none':
                 state.talkingStatus = 'none';
-                state.talkingPeer = undefined;
+                state.talkingPeer = null;
                 this.props.room.send('none');
                 this.props.localStream.getAudioTracks().forEach((track) => {
                     track.enabled = false;
@@ -306,7 +306,7 @@ class Answer extends Component {
         let waitingPeers = this.props.waitingPeers;
         switch (newStatus) {
             case 'none':
-                talkingPeer = undefined;
+                talkingPeer = null;
                 waitingPeers = {remove: remotePeerId};
                 break;
             case 'talking':
@@ -361,9 +361,7 @@ class Config extends Component {
         function startScreenShare() {
             screenshare.startScreenShare({}, (stream) => {
                 console.log('successed screenshare');
-                // onSuccess
-                // var url = window.URL.createObjectURL(stream);
-                // document.getElementById("video-for-share").src = url;
+                this.props.update({localstream: stream});
             }, function(err) {
                 // onError
                 console.error('[error in starting screen share]', err);
