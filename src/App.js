@@ -353,7 +353,7 @@ class Config extends Component {
         const screenshare = new SkyWay.ScreenShare({debug: true});
 
         if (screenshare.isEnabledExtension()) {
-            startScreenShare();
+            (startScreenShare.bind(this))();
         } else {
             installExtension();
         }
