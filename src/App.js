@@ -116,7 +116,7 @@ class SpeakerUi extends Component {
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)('speaker', 640, 360, 1, false);
+            webinar.bind(this)('speaker', 1280, 720, 5, false);
         }
         return (
             <div id="SpeakerUi">
@@ -353,13 +353,17 @@ class Config extends Component {
         const screenshare = new SkyWay.ScreenShare({debug: true});
 
         if (screenshare.isEnabledExtension()) {
-            (startScreenShare.bind(this))();
+            startScreenShare.bind(this)();
         } else {
             installExtension();
         }
 
         function startScreenShare() {
-            screenshare.startScreenShare({}, (stream) => {
+            screenshare.startScreenShare({
+                Width: 1920,
+                Height: 1080,
+                FrameRate: 5
+            }, (stream) => {
                 console.log('successed screenshare');
                 this.props.update({localStream: stream});
             }, function(err) {
@@ -389,6 +393,7 @@ class Config extends Component {
     render () {
         return (
             <div id="Config">
+                <h2>Video Source</h2>
                 <label>
                     <input type="radio" name="videoSource" id="camera" onChange={this._onChange.bind(this)} defaultChecked />
                     Camera
