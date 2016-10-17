@@ -361,7 +361,7 @@ class Config extends Component {
         function startScreenShare() {
             screenshare.startScreenShare({}, (stream) => {
                 console.log('successed screenshare');
-                this.props.update({localstream: stream});
+                this.props.update({localStream: stream});
             }, function(err) {
                 // onError
                 console.error('[error in starting screen share]', err);
@@ -544,7 +544,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         }, false);
         */
     }
-    connectToSkyWay.bind(this)(myPeerId, width, height, isMuted);
+    connectToSkyWay.bind(this)(myPeerId, width, height, framerate, isMuted);
 }
 
 export default App;
