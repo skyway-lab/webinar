@@ -44,15 +44,15 @@ class App extends Component {
         const room = newState.room ? newState.room : this.state.room;
         const myPeerId = newState.myPeerId ? newState.myPeerId : this.state.myPeerId;
         const state = {
-            mode: mode,
-            localStream: localStream,
-            cameraStream: cameraStream,
-            remoteStreams: remoteStreams,
-            waitingPeers: waitingPeers,
-            talkingPeer: talkingPeer,
-            talkingStatus: talkingStatus,
-            room: room,
-            myPeerId: myPeerId
+            mode,
+            localStream,
+            cameraStream,
+            remoteStreams,
+            waitingPeers,
+            talkingPeer,
+            talkingStatus,
+            room,
+            myPeerId
         };
         this.setState(state);
     }
