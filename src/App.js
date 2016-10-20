@@ -20,7 +20,7 @@ class App extends Component {
     update (newState) {
         const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
-        const cameraStream = newState.hasOwnProperty('cameraStream') ? newState.localStream : this.state.localStream;
+        const cameraStream = newState.hasOwnProperty('cameraStream') ? newState.cameraStream : this.state.cameraStream;
         let remoteStreams = this.state.remoteStreams;
         if (newState.remoteStreams && newState.remoteStreams.add) {
             remoteStreams.push(newState.remoteStreams.add);
@@ -130,6 +130,7 @@ class SpeakerUi extends Component {
                 <Config
                     room={this.props.room}
                     update={this.props.update}
+                    localStream={this.props.localStream}
                     cameraStream={this.props.cameraStream} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
@@ -356,14 +357,23 @@ class Answer extends Component {
 
 class Config extends Component {
     _onChange (event) {
-        console.log(event.target);
-        const screenshare = new SkyWay.ScreenShare({debug: true});
+        console.log(event.target.id);
 
-        if (screenshare.isEnabledExtension()) {
-            startScreenShare.bind(this)();
-        } else {
-            installExtension();
+        if (event.target.id === 'camera') {
+            if (this.props.localStream === this.props.cameraStream) {
+                return;
+            }
+            this.props.localStream.getTracks().forEach(track => {
+                track.stop();
+            });
+            return;
         }
+
+        if (this.props.localStream !== this.props.cameraStream) {
+            return;
+        }
+
+        const screenshare = new SkyWay.ScreenShare({debug: true});
 
         function startScreenShare() {
             screenshare.startScreenShare({
@@ -380,8 +390,10 @@ class Config extends Component {
             }, () => {
                 // onStopscreenshare
                 console.log('stop screen share');
+                setTimeout(() => {
+                    this.props.update({localStream: this.props.cameraStream});
+                });
                 this.props.room.replaceStream(this.props.cameraStream);
-                this.props.update({localStream: this.props.cameraStream});
             });
         }
 
@@ -398,6 +410,12 @@ class Config extends Component {
                     startScreenShare();
                 }
             }, false);
+        }
+
+        if (screenshare.isEnabledExtension()) {
+            startScreenShare.bind(this)();
+        } else {
+            installExtension();
         }
     }
     render () {
