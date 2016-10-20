@@ -123,7 +123,9 @@ class SpeakerUi extends Component {
                 <h1 className="none">講師</h1>
                 <h2 className="none">自分</h2>
                 <LocalVideo localStream={this.props.localStream} />
-                <Config update={this.props.update} />
+                <Config
+                    room={this.props.room}
+                    update={this.props.update} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -365,6 +367,7 @@ class Config extends Component {
                 FrameRate: 5
             }, (stream) => {
                 console.log('successed screenshare');
+                this.props.room.replaceStream(stream);
                 this.props.update({localStream: stream});
             }, function(err) {
                 // onError
