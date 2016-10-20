@@ -7,6 +7,7 @@ class App extends Component {
         this.state = {
             mode: null,
             localStream: null,
+            cameraStream: null,
             remoteStreams: [],
             waitingPeers: [],
             talkingPeer: null,
@@ -19,6 +20,7 @@ class App extends Component {
     update (newState) {
         const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
+        const cameraStream = newState.hasOwnProperty('cameraStream') ? newState.localStream : this.state.localStream;
         let remoteStreams = this.state.remoteStreams;
         if (newState.remoteStreams && newState.remoteStreams.add) {
             remoteStreams.push(newState.remoteStreams.add);
@@ -44,6 +46,7 @@ class App extends Component {
         const state = {
             mode: mode,
             localStream: localStream,
+            cameraStream: cameraStream,
             remoteStreams: remoteStreams,
             waitingPeers: waitingPeers,
             talkingPeer: talkingPeer,
@@ -62,6 +65,7 @@ class App extends Component {
                     update={this.update}
                     mode={this.state.mode}
                     localStream={this.state.localStream}
+                    cameraStream={this.state.cameraStream}
                     remoteStreams={this.state.remoteStreams}
                     waitingPeers={this.state.waitingPeers}
                     talkingPeer={this.state.talkingPeer}
@@ -125,7 +129,8 @@ class SpeakerUi extends Component {
                 <LocalVideo localStream={this.props.localStream} />
                 <Config
                     room={this.props.room}
-                    update={this.props.update} />
+                    update={this.props.update}
+                    cameraStream={this.props.cameraStream} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -369,12 +374,14 @@ class Config extends Component {
                 console.log('successed screenshare');
                 this.props.room.replaceStream(stream);
                 this.props.update({localStream: stream});
-            }, function(err) {
+            }, (err) => {
                 // onError
                 console.error('[error in starting screen share]', err);
-            }, function() {
+            }, () => {
                 // onStopscreenshare
                 console.log('stop screen share');
+                this.props.room.replaceStream(this.props.cameraStream);
+                this.props.update({localStream: this.props.cameraStream});
             });
         }
 
@@ -448,7 +455,8 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                 });
             }
             this.props.update({
-                localStream: stream
+                localStream: stream,
+                cameraStream: stream
             });
             _showRemoteVideo.bind(this)(stream);
         }).catch((err) => {
