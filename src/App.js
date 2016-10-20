@@ -412,7 +412,7 @@ class Config extends Component {
 
 function webinar(myPeerId, width, height, framerate, isMuted) {
     let peer;
-    function connectToSkyWay(_myPeerId, _width, _height, _framerate, _isMuted) {
+    function _connectToSkyWay(_myPeerId, _width, _height, _framerate, _isMuted) {
         if (_myPeerId) {
             peer = new Peer(_myPeerId, {
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
@@ -423,14 +423,14 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             });
         }
         peer.on('open', () => {
-            showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
+            _showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
             this.props.update({myPeerId: peer.id});
         });
         peer.on('error', (err) => {
             console.error(err.message);
         });
     }
-    function showLocalVideo(__width, __height, __framerate, __isMuted) {
+    function _showLocalVideo(__width, __height, __framerate, __isMuted) {
         const videoConstraints = {
             width: { max: __width },
             height: { max: __height },
@@ -450,12 +450,12 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             this.props.update({
                 localStream: stream
             });
-            showRemoteVideo.bind(this)(stream);
+            _showRemoteVideo.bind(this)(stream);
         }).catch((err) => {
             console.error(err);
         });
     }
-    function showRemoteVideo(_stream) {
+    function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
         const room = peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
         this.props.update({
@@ -542,7 +542,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         }, false);
         */
     }
-    connectToSkyWay.bind(this)(myPeerId, width, height, framerate, isMuted);
+    _connectToSkyWay.bind(this)(myPeerId, width, height, framerate, isMuted);
 }
 
 export default App;
