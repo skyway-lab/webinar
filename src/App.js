@@ -431,24 +431,14 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         });
     }
     function showLocalVideo(__width, __height, __framerate, __isMuted) {
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-        const videoConstraints
-            = navigator.webkitGetUserMedia
-            ? // for chrome
-        {
-            mandatory: {
-                maxWidth: __width,
-                maxHeight: __height,
-                maxFrameRate: __framerate
-            }
-        }
-            : // for firefox
-        {
-            width: __width,
-            height: __height,
+        const videoConstraints = {
+            width: { max: __width },
+            height: { max: __height },
+            frameRate: 5,
             facingMode: 'user'
         };
-        navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
+        navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
+        .then((stream) => {
             if (isMuted) {
                 stream.getAudioTracks().forEach((track) => {
                     track.enabled = false;
@@ -461,7 +451,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                 localStream: stream
             });
             showRemoteVideo.bind(this)(stream);
-        }, (err) => {
+        }).catch((err) => {
             console.error(err);
         });
     }
