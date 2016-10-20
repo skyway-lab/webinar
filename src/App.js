@@ -26,7 +26,7 @@ class App extends Component {
             remoteStreams.push(newState.remoteStreams.add);
         }
         if (newState.remoteStreams && newState.remoteStreams.remove) {
-            remoteStreams = remoteStreams.filter((stream) => {
+            remoteStreams = remoteStreams.filter(stream => {
                 return stream !== newState.remoteStreams.remove;
             });
         }
@@ -35,7 +35,7 @@ class App extends Component {
             waitingPeers.push(newState.waitingPeers.add);
         }
         if (newState.waitingPeers && newState.waitingPeers.remove) {
-            waitingPeers = waitingPeers.filter((remotePeerId) => {
+            waitingPeers = waitingPeers.filter(remotePeerId => {
                 return remotePeerId !== newState.waitingPeers.remove;
             });
         }
@@ -200,7 +200,7 @@ class LocalVideo extends Component {
 class RemoteVideos extends Component {
     render () {
         const target = this.props.target;
-        const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
+        const remoteStreamNodes = this.props.remoteStreams.map(stream => {
             const url = URL.createObjectURL(stream);
             switch (target) {
                 case 'speaker':
@@ -259,17 +259,17 @@ class Question extends Component {
                 state.talkingStatus = 'none';
                 state.talkingPeer = null;
                 this.props.room.send('none');
-                this.props.localStream.getAudioTracks().forEach((track) => {
+                this.props.localStream.getAudioTracks().forEach(track => {
                     track.enabled = false;
                 });
-                this.props.localStream.getVideoTracks().forEach((track) => {
+                this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = false;
                 });
                 break;
             case 'waiting':
                 state.talkingStatus = 'waiting';
                 this.props.room.send('waiting');
-                this.props.localStream.getVideoTracks().forEach((track) => {
+                this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = true;
                 });
                 break;
@@ -380,11 +380,11 @@ class Config extends Component {
                 Width: 1920,
                 Height: 1080,
                 FrameRate: 5
-            }, (stream) => {
+            }, stream => {
                 console.log('successed screenshare');
                 this.props.room.replaceStream(stream);
                 this.props.update({localStream: stream});
-            }, (err) => {
+            }, err => {
                 // onError
                 console.error('[error in starting screen share]', err);
             }, () => {
@@ -400,7 +400,7 @@ class Config extends Component {
         function installExtension() {
             chrome.webstore.install('', () => {
                 console.log('succeeded to install extension');
-            }, (ev) => {
+            }, ev => {
                 console.error('[error in installing extension]', ev);
             });
 
@@ -451,7 +451,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             _showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
             this.props.update({myPeerId: peer.id});
         });
-        peer.on('error', (err) => {
+        peer.on('error', err => {
             console.error(err.message);
         });
     }
@@ -463,12 +463,12 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             facingMode: 'user'
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
-        .then((stream) => {
+        .then(stream => {
             if (isMuted) {
-                stream.getAudioTracks().forEach((track) => {
+                stream.getAudioTracks().forEach(track => {
                     track.enabled = false;
                 });
-                stream.getVideoTracks().forEach((track) => {
+                stream.getVideoTracks().forEach(track => {
                     track.enabled = false;
                 });
             }
@@ -477,7 +477,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                 cameraStream: stream
             });
             _showRemoteVideo.bind(this)(stream);
-        }).catch((err) => {
+        }).catch(err => {
             console.error(err);
         });
     }
@@ -502,18 +502,18 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         room.on('close', () => {
             console.log('room.on(\'close\')');
         });
-        room.on('peerJoin', (id) => {
+        room.on('peerJoin', id => {
             console.log('room.on(\'peerJoin\')');
             console.log(id);
             if (this.props.mode === 'speaker') {
                 room.send(this.props.talkingPeer);
             }
         });
-        room.on('peerLeave', (id) => {
+        room.on('peerLeave', id => {
             console.log('room.on(\'peerLeave\')');
             console.log(id);
         });
-        room.on('data', (msg) => {
+        room.on('data', msg => {
             console.log('room.on(\'data\')');
             console.log(msg);
             let state = {};
@@ -538,16 +538,16 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                     const willTalk = (msg.data === this.props.myPeerId);
                     if (isTalking && willDisconnect) {
                         state.talkingStatus = 'none';
-                        this.props.localStream.getAudioTracks().forEach((track) => {
+                        this.props.localStream.getAudioTracks().forEach(track => {
                             track.enabled = false;
                         });
-                        this.props.localStream.getVideoTracks().forEach((track) => {
+                        this.props.localStream.getVideoTracks().forEach(track => {
                             track.enabled = false;
                         });
                     }
                     if (!isTalking && willTalk) {
                         state.talkingStatus = 'talking';
-                        this.props.localStream.getAudioTracks().forEach((track) => {
+                        this.props.localStream.getAudioTracks().forEach(track => {
                             track.enabled = true;
                         });
                     }
