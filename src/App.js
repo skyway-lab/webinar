@@ -116,14 +116,16 @@ class SpeakerUi extends Component {
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)('speaker', 640, 360, 1, false);
+            webinar.bind(this)('speaker', 1280, 720, 5, false);
         }
         return (
             <div id="SpeakerUi">
                 <h1 className="none">講師</h1>
                 <h2 className="none">自分</h2>
                 <LocalVideo localStream={this.props.localStream} />
-                <Config update={this.props.update} />
+                <Config
+                    room={this.props.room}
+                    update={this.props.update} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -353,15 +355,20 @@ class Config extends Component {
         const screenshare = new SkyWay.ScreenShare({debug: true});
 
         if (screenshare.isEnabledExtension()) {
-            startScreenShare();
+            startScreenShare.bind(this)();
         } else {
             installExtension();
         }
 
         function startScreenShare() {
-            screenshare.startScreenShare({}, (stream) => {
+            screenshare.startScreenShare({
+                Width: 1920,
+                Height: 1080,
+                FrameRate: 5
+            }, (stream) => {
                 console.log('successed screenshare');
-                this.props.update({localstream: stream});
+                this.props.room.replaceStream(stream);
+                this.props.update({localStream: stream});
             }, function(err) {
                 // onError
                 console.error('[error in starting screen share]', err);
@@ -389,6 +396,7 @@ class Config extends Component {
     render () {
         return (
             <div id="Config">
+                <h2>Video Source</h2>
                 <label>
                     <input type="radio" name="videoSource" id="camera" onChange={this._onChange.bind(this)} defaultChecked />
                     Camera
@@ -404,7 +412,7 @@ class Config extends Component {
 
 function webinar(myPeerId, width, height, framerate, isMuted) {
     let peer;
-    function connectToSkyWay(_myPeerId, _width, _height, _framerate, _isMuted) {
+    function _connectToSkyWay(_myPeerId, _width, _height, _framerate, _isMuted) {
         if (_myPeerId) {
             peer = new Peer(_myPeerId, {
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
@@ -415,32 +423,22 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             });
         }
         peer.on('open', () => {
-            showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
+            _showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
             this.props.update({myPeerId: peer.id});
         });
         peer.on('error', (err) => {
             console.error(err.message);
         });
     }
-    function showLocalVideo(__width, __height, __framerate, __isMuted) {
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-        const videoConstraints
-            = navigator.webkitGetUserMedia
-            ? // for chrome
-        {
-            mandatory: {
-                maxWidth: __width,
-                maxHeight: __height,
-                maxFrameRate: __framerate
-            }
-        }
-            : // for firefox
-        {
-            width: __width,
-            height: __height,
+    function _showLocalVideo(__width, __height, __framerate, __isMuted) {
+        const videoConstraints = {
+            width: { max: __width },
+            height: { max: __height },
+            frameRate: 5,
             facingMode: 'user'
         };
-        navigator.getUserMedia({audio: true, video: videoConstraints}, (stream) => {
+        navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
+        .then((stream) => {
             if (isMuted) {
                 stream.getAudioTracks().forEach((track) => {
                     track.enabled = false;
@@ -452,12 +450,12 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             this.props.update({
                 localStream: stream
             });
-            showRemoteVideo.bind(this)(stream);
-        }, (err) => {
+            _showRemoteVideo.bind(this)(stream);
+        }).catch((err) => {
             console.error(err);
         });
     }
-    function showRemoteVideo(_stream) {
+    function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
         const room = peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
         this.props.update({
@@ -544,7 +542,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         }, false);
         */
     }
-    connectToSkyWay.bind(this)(myPeerId, width, height, isMuted);
+    _connectToSkyWay.bind(this)(myPeerId, width, height, framerate, isMuted);
 }
 
 export default App;
