@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import { Button, ButtonGroup, Glyphicon } from 'react-bootstrap';
 
 class App extends Component {
     constructor (props) {
@@ -8,6 +9,8 @@ class App extends Component {
             mode: null,
             localStream: null,
             cameraStream: null,
+            screenStream: null,
+            screenShare: null,
             remoteStreams: [],
             waitingPeers: [],
             talkingPeer: null,
@@ -21,6 +24,8 @@ class App extends Component {
         const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
         const cameraStream = newState.hasOwnProperty('cameraStream') ? newState.cameraStream : this.state.cameraStream;
+        const screenStream = newState.hasOwnProperty('screenStream') ? newState.screenStream : this.state.screenStream;
+        const screenShare = newState.screenShare ? newState.screenShare : this.state.screenShare;
         let remoteStreams = this.state.remoteStreams;
         if (newState.remoteStreams && newState.remoteStreams.add) {
             remoteStreams.push(newState.remoteStreams.add);
@@ -47,6 +52,8 @@ class App extends Component {
             mode,
             localStream,
             cameraStream,
+            screenStream,
+            screenShare,
             remoteStreams,
             waitingPeers,
             talkingPeer,
@@ -55,6 +62,7 @@ class App extends Component {
             myPeerId
         };
         this.setState(state);
+        console.info(screenShare);
     }
     render() {
         return (
@@ -66,6 +74,8 @@ class App extends Component {
                     mode={this.state.mode}
                     localStream={this.state.localStream}
                     cameraStream={this.state.cameraStream}
+                    screenStream={this.state.screenStream}
+                    screenShare={this.state.screenShare}
                     remoteStreams={this.state.remoteStreams}
                     waitingPeers={this.state.waitingPeers}
                     talkingPeer={this.state.talkingPeer}
@@ -131,7 +141,9 @@ class SpeakerUi extends Component {
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
-                    cameraStream={this.props.cameraStream} />
+                    cameraStream={this.props.cameraStream}
+                    screenStream={this.props.screenStream}
+                    screenShare={this.props.screenShare} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -356,10 +368,10 @@ class Answer extends Component {
 }
 
 class Config extends Component {
-    _onChange (event) {
-        console.log(event.target.id);
+    _onClick (event) {
+        console.info(event.currentTarget);
 
-        if (event.target.id === 'camera') {
+        if (event.currentTarget.id === 'camera') {
             if (this.props.localStream === this.props.cameraStream) {
                 return;
             }
@@ -369,32 +381,48 @@ class Config extends Component {
             return;
         }
 
-        if (this.props.localStream !== this.props.cameraStream) {
+        if (this.props.screenStream === this.props.cameraStream) {
             return;
         }
 
-        const screenshare = new SkyWay.ScreenShare({debug: true});
+        const screenShare = this.props.screenShare || new SkyWay.ScreenShare({debug: true});
+        if (!this.props.screenShare) {
+            this.props.update({ screenShare });
+        }
 
-        function startScreenShare() {
-            screenshare.startScreenShare({
+        function successScreenShare (stream) {
+            console.log('successed screenshare');
+            this.props.room.replaceStream(stream);
+            this.props.update({
+                localStream: stream,
+                screenStream: stream
+            });
+        }
+
+        function failScreenShare (err) {
+            console.error('[error in starting screen share]', err);
+        }
+
+        function stopScreenShare () {
+            console.log('stop screen share');
+            this.props.room.replaceStream(this.props.cameraStream);
+            this.props.update({ localStream: this.props.cameraStream });
+        }
+
+        function startScreenShareFirst() {
+            screenShare.startScreenShare({
                 Width: 1920,
                 Height: 1080,
                 FrameRate: 5
-            }, stream => {
-                console.log('successed screenshare');
-                this.props.room.replaceStream(stream);
-                this.props.update({localStream: stream});
-            }, err => {
-                // onError
-                console.error('[error in starting screen share]', err);
-            }, () => {
-                // onStopscreenshare
-                console.log('stop screen share');
-                setTimeout(() => {
-                    this.props.update({localStream: this.props.cameraStream});
-                });
-                this.props.room.replaceStream(this.props.cameraStream);
-            });
+            }, successScreenShare.bind(this), failScreenShare.bind(this), stopScreenShare.bind(this));
+        }
+
+        function startScreenShare() {
+            screenShare.startScreenShare({
+                Width: 1920,
+                Height: 1080,
+                FrameRate: 5
+            }, () => {}, () => {}, () => {});
         }
 
         function installExtension() {
@@ -407,29 +435,41 @@ class Config extends Component {
             window.addEventListener('message', function(ev) {
                 if(ev.data.type === "ScreenShareInjected") {
                     console.log('screen share extension is injected, get ready to use');
-                    startScreenShare();
+                    startScreenShareFirst.bind(this)();
                 }
             }, false);
         }
 
-        if (screenshare.isEnabledExtension()) {
-            startScreenShare.bind(this)();
+
+        if (screenShare.isEnabledExtension()) {
+            if (!this.props.screenShare) {
+                startScreenShareFirst.bind(this)();
+            } else {
+                startScreenShare.bind(this)();
+            }
         } else {
             installExtension();
         }
     }
     render () {
+        if (!this.props.localStream || this.props.localStream === this.props.cameraStream) {
+            return (
+                <div id="Config">
+                    <h2>Video Source</h2>
+                    <ButtonGroup>
+                        <Button id="camera" title="Camera" disabled><Glyphicon glyph="facetime-video" /></Button>
+                        <Button id="screen" title="Screen" onClick={this._onClick.bind(this)}><Glyphicon glyph="list-alt" /></Button>
+                    </ButtonGroup>
+                </div>
+            );
+        }
         return (
             <div id="Config">
                 <h2>Video Source</h2>
-                <label>
-                    <input type="radio" name="videoSource" id="camera" onChange={this._onChange.bind(this)} defaultChecked />
-                    Camera
-                </label>
-                <label>
-                    <input type="radio" name="videoSource" id="screen" onChange={this._onChange.bind(this)} />
-                    Screen
-                </label>
+                <ButtonGroup>
+                    <Button id="camera" title="Camera" onClick={this._onClick.bind(this)}><Glyphicon glyph="facetime-video" /></Button>
+                    <Button id="screen" title="Screen" disabled><Glyphicon glyph="list-alt" /></Button>
+                </ButtonGroup>
             </div>
         );
     }
@@ -449,7 +489,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         }
         peer.on('open', () => {
             _showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
-            this.props.update({myPeerId: peer.id});
+            this.props.update({ myPeerId: peer.id });
         });
         peer.on('error', err => {
             console.error(err.message);
@@ -483,21 +523,15 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
     }
     function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
-        const room = peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
-        this.props.update({
-            room: room
-        });
+        const room = peer.joinRoom(roomName, { mode: 'sfu', stream: _stream });
+        this.props.update({ room });
         room.on('stream', (_stream) => {
             console.log('room.on(\'stream\')');
-            this.props.update({
-                remoteStreams: {add: _stream}
-            });
+            this.props.update({ remoteStreams: { add: _stream } });
         });
         room.on('removeStream', (_stream) => {
             console.log('room.on(\'removeStream\')');
-            this.props.update({
-                remoteStreams: {remove: _stream}
-            });
+            this.props.update({ remoteStreams: { remove: _stream } });
         });
         room.on('close', () => {
             console.log('room.on(\'close\')');
