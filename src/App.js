@@ -278,7 +278,7 @@ class Question extends Component {
             case 'none':
                 state.talkingStatus = 'none';
                 state.talkingPeer = null;
-                this.props.room.send('none');
+                this.props.room.send({ talkingStatus: 'none' });
                 this.props.localStream.getAudioTracks().forEach(track => {
                     track.enabled = false;
                 });
@@ -288,7 +288,7 @@ class Question extends Component {
                 break;
             case 'waiting':
                 state.talkingStatus = 'waiting';
-                this.props.room.send('waiting');
+                this.props.room.send({ talkingStatus: 'waiting' });
                 this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = true;
                 });
@@ -346,8 +346,8 @@ class Answer extends Component {
             default:
                 break;
         }
-        this.props.room.send(talkingPeer);
-        this.props.update({talkingPeer: talkingPeer, waitingPeers: waitingPeers});
+        this.props.room.send({ talkingPeer });
+        this.props.update({ talkingPeer, waitingPeers });
     }
     render () {
         const remotePeerId = this.props.remotePeerId;
@@ -546,22 +546,20 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             console.log('room.on(\'peerJoin\')');
             console.log(id);
             if (this.props.mode === 'speaker') {
-                room.send(this.props.talkingPeer);
+                room.send({ talkingPeer: this.props.talkingPeer });
             }
         });
         room.on('peerLeave', id => {
-            console.log('room.on(\'peerLeave\')');
-            console.log(id);
+            console.log('room.on(\'peerLeave\'): ', id);
         });
         room.on('data', msg => {
-            console.log('room.on(\'data\')');
-            console.log(msg);
+            console.log('room.on(\'data\'): ', msg);
             let state = {};
             switch (this.props.mode) {
                 case 'speaker':
-                    if (msg.data === 'waiting') {
+                    if (msg.data.talkingStatus === 'waiting') {
                         state.waitingPeers = {add: msg.src};
-                    } else if (msg.data === 'none') {
+                    } else if (msg.data.talkingStatus === 'none') {
                         state.waitingPeers = {remove: msg.src};
                         state.talkingPeer = undefined;
                     }
@@ -570,12 +568,12 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                     if (msg.src !== 'speaker') {
                         return;
                     }
-                    if (this.props.talkingPeer === msg.data) {
+                    if (this.props.talkingPeer === msg.data.talkingPeer) {
                         return;
                     }
                     const isTalking = (this.props.talkingStatus === 'talking');
-                    const willDisconnect = (!msg.data) || (msg.data !== this.props.myPeerId);
-                    const willTalk = (msg.data === this.props.myPeerId);
+                    const willDisconnect = (msg.data.talkingPeer === null) || (msg.data.talkingPeer !== this.props.myPeerId);
+                    const willTalk = (msg.data.talkingPeer === this.props.myPeerId);
                     if (isTalking && willDisconnect) {
                         state.talkingStatus = 'none';
                         this.props.localStream.getAudioTracks().forEach(track => {
@@ -591,7 +589,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                             track.enabled = true;
                         });
                     }
-                    state.talkingPeer = msg.data;
+                    state.talkingPeer = msg.data.talkingPeer;
                     break;
                 default:
                     break;
