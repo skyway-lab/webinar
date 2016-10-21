@@ -46,25 +46,36 @@
 /* SpeakerUi */
 
 #SpeakerUi #LocalVideo {
-    width: 50%;
     height: 50vh;
 }
 
 #SpeakerUi #LocalVideo video {
-    object-fit: contain;
     width: 100%;
     height: 100%;
+}
+
+#SpeakerUi #LocalVideo video.camera {
+    object-fit: contain;
     -webkit-transform: scaleX(-1);
     -moz-transform: scaleX(-1);
     transform: scaleX(-1);
 }
 
+#SpeakerUi #LocalVideo video.screen {
+    object-fit: contain;
+}
+
 #SpeakerUi #Config {
     position: absolute;
     top: 0;
-    left: 50%;
-    width: 50%;
+    left: 0;
+    width: 100%;
     height: 50vh;
+    text-align: center;
+}
+
+#SpeakerUi #Config h2 {
+    display: none;
 }
 
 #SpeakerUi .remote-videos-audience {

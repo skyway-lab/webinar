@@ -62,7 +62,6 @@ class App extends Component {
             myPeerId
         };
         this.setState(state);
-        console.info(screenShare);
     }
     render() {
         return (
@@ -136,7 +135,10 @@ class SpeakerUi extends Component {
             <div id="SpeakerUi">
                 <h1 className="none">講師</h1>
                 <h2 className="none">自分</h2>
-                <LocalVideo localStream={this.props.localStream} />
+                <LocalVideo
+                    localStream={this.props.localStream}
+                    cameraStream={this.props.cameraStream}
+                    screenStream={this.props.screenStream} />
                 <Config
                     room={this.props.room}
                     update={this.props.update}
@@ -200,10 +202,16 @@ class LocalVideo extends Component {
         if (!this.props.localStream) {
             return false;
         }
+        let className;
+        if (this.props.localStream && this.props.screenStream && this.props.localStream === this.props.screenStream) {
+            className = 'screen';
+        } else {
+            className = 'camera';
+        }
         const url = URL.createObjectURL(this.props.localStream);
         return (
             <div id="LocalVideo">
-                <video autoPlay muted src={url} />
+                <video autoPlay muted src={url} className={className} />
             </div>
         );
     }
@@ -369,8 +377,6 @@ class Answer extends Component {
 
 class Config extends Component {
     _onClick (event) {
-        console.info(event.currentTarget);
-
         if (event.currentTarget.id === 'camera') {
             if (this.props.localStream === this.props.cameraStream) {
                 return;
@@ -594,6 +600,8 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                 this.props.update(state);
             }
         });
+        room.on('log', logs => {console.info(logs)});
+        room.getLog();
         // skyway.js seems to close beforehand.
         /*
         window.addEventListener('beforeunload', () => {
