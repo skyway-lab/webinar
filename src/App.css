@@ -155,9 +155,16 @@
 }
 
 #AudienceUi .remote-videos-speaker, #AudienceUi .remote-videos-speaker .remote-video-wrapper video {
-    object-fit: cover;
     width: 100%;
     height: 100%;
+}
+
+#AudienceUi .remote-videos-speaker, #AudienceUi .remote-videos-speaker .remote-video-wrapper video.camera {
+    object-fit: cover;
+}
+
+#AudienceUi .remote-videos-speaker, #AudienceUi .remote-videos-speaker .remote-video-wrapper video.screen {
+    object-fit: contain;
 }
 
 #AudienceUi #LocalVideo {

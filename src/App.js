@@ -12,6 +12,7 @@ class App extends Component {
             screenStream: null,
             screenShare: null,
             remoteStreams: [],
+            speakerStreamKind: 'camera',
             waitingPeers: [],
             talkingPeer: null,
             talkingStatus: 'none',
@@ -35,6 +36,7 @@ class App extends Component {
                 return stream !== newState.remoteStreams.remove;
             });
         }
+        const speakerStreamKind = newState.speakerStreamKind ? newState.speakerStreamKind : this.state.speakerStreamKind;
         let waitingPeers = this.state.waitingPeers;
         if (newState.waitingPeers && newState.waitingPeers.add) {
             waitingPeers.push(newState.waitingPeers.add);
@@ -55,6 +57,7 @@ class App extends Component {
             screenStream,
             screenShare,
             remoteStreams,
+            speakerStreamKind,
             waitingPeers,
             talkingPeer,
             talkingStatus,
@@ -85,6 +88,7 @@ class App extends Component {
                     mode={this.state.mode}
                     localStream={this.state.localStream}
                     remoteStreams={this.state.remoteStreams}
+                    speakerStreamKind={this.state.speakerStreamKind}
                     waitingPeers={this.state.waitingPeers}
                     talkingPeer={this.state.talkingPeer}
                     room={this.state.room}
@@ -179,6 +183,7 @@ class AudienceUi extends Component {
                 <RemoteVideos
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
+                    speakerStreamKind={this.props.speakerStreamKind}
                     target="speaker"
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
@@ -240,7 +245,7 @@ class RemoteVideos extends Component {
                 case 'audience':
                     return (
                         <div className="remote-video-wrapper">
-                            <video autoPlay src={url} />
+                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
                             <Answer
                                 remotePeerId={stream.peerId}
                                 waitingPeers={this.props.waitingPeers}
@@ -399,6 +404,7 @@ class Config extends Component {
         function successScreenShare (stream) {
             console.log('successed screenshare');
             this.props.room.replaceStream(stream);
+            this.props.room.send({streamKind: 'screen'});
             this.props.update({
                 localStream: stream,
                 screenStream: stream
@@ -412,21 +418,18 @@ class Config extends Component {
         function stopScreenShare () {
             console.log('stop screen share');
             this.props.room.replaceStream(this.props.cameraStream);
+            this.props.room.send({streamKind: 'camera'});
             this.props.update({ localStream: this.props.cameraStream });
         }
 
         function startScreenShareFirst() {
             screenShare.startScreenShare({
-                Width: 1920,
-                Height: 1080,
                 FrameRate: 5
             }, successScreenShare.bind(this), failScreenShare.bind(this), stopScreenShare.bind(this));
         }
 
         function startScreenShare() {
             screenShare.startScreenShare({
-                Width: 1920,
-                Height: 1080,
                 FrameRate: 5
             }, () => {}, () => {}, () => {});
         }
@@ -571,26 +574,32 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                     if (this.props.talkingPeer === msg.data.talkingPeer) {
                         return;
                     }
-                    const isTalking = (this.props.talkingStatus === 'talking');
-                    const willDisconnect = (msg.data.talkingPeer === null) || (msg.data.talkingPeer !== this.props.myPeerId);
-                    const willTalk = (msg.data.talkingPeer === this.props.myPeerId);
-                    if (isTalking && willDisconnect) {
-                        state.talkingStatus = 'none';
-                        this.props.localStream.getAudioTracks().forEach(track => {
-                            track.enabled = false;
-                        });
-                        this.props.localStream.getVideoTracks().forEach(track => {
-                            track.enabled = false;
-                        });
+                    if (msg.data.streamKind) {
+                        state.speakerStreamKind = msg.data.streamKind;
+                        break;
                     }
-                    if (!isTalking && willTalk) {
-                        state.talkingStatus = 'talking';
-                        this.props.localStream.getAudioTracks().forEach(track => {
-                            track.enabled = true;
-                        });
+                    if (msg.data.hasOwnProperty('talkingPeer')) {
+                        const isTalking = (this.props.talkingStatus === 'talking');
+                        const willDisconnect = (msg.data.talkingPeer === null) || (msg.data.talkingPeer !== this.props.myPeerId);
+                        const willTalk = (msg.data.talkingPeer === this.props.myPeerId);
+                        if (isTalking && willDisconnect) {
+                            state.talkingStatus = 'none';
+                            this.props.localStream.getAudioTracks().forEach(track => {
+                                track.enabled = false;
+                            });
+                            this.props.localStream.getVideoTracks().forEach(track => {
+                                track.enabled = false;
+                            });
+                        }
+                        if (!isTalking && willTalk) {
+                            state.talkingStatus = 'talking';
+                            this.props.localStream.getAudioTracks().forEach(track => {
+                                track.enabled = true;
+                            });
+                        }
+                        state.talkingPeer = msg.data.talkingPeer;
+                        break;
                     }
-                    state.talkingPeer = msg.data.talkingPeer;
-                    break;
                 default:
                     break;
             }
