@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import { Button, ButtonGroup, Glyphicon } from 'react-bootstrap';
 
 class App extends Component {
     constructor (props) {
@@ -8,7 +9,10 @@ class App extends Component {
             mode: null,
             localStream: null,
             cameraStream: null,
+            screenStream: null,
+            screenShare: null,
             remoteStreams: [],
+            speakerStreamKind: 'camera',
             waitingPeers: [],
             talkingPeer: null,
             talkingStatus: 'none',
@@ -21,21 +25,24 @@ class App extends Component {
         const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
         const cameraStream = newState.hasOwnProperty('cameraStream') ? newState.cameraStream : this.state.cameraStream;
+        const screenStream = newState.hasOwnProperty('screenStream') ? newState.screenStream : this.state.screenStream;
+        const screenShare = newState.screenShare ? newState.screenShare : this.state.screenShare;
         let remoteStreams = this.state.remoteStreams;
         if (newState.remoteStreams && newState.remoteStreams.add) {
             remoteStreams.push(newState.remoteStreams.add);
         }
         if (newState.remoteStreams && newState.remoteStreams.remove) {
-            remoteStreams = remoteStreams.filter((stream) => {
+            remoteStreams = remoteStreams.filter(stream => {
                 return stream !== newState.remoteStreams.remove;
             });
         }
+        const speakerStreamKind = newState.speakerStreamKind ? newState.speakerStreamKind : this.state.speakerStreamKind;
         let waitingPeers = this.state.waitingPeers;
         if (newState.waitingPeers && newState.waitingPeers.add) {
             waitingPeers.push(newState.waitingPeers.add);
         }
         if (newState.waitingPeers && newState.waitingPeers.remove) {
-            waitingPeers = waitingPeers.filter((remotePeerId) => {
+            waitingPeers = waitingPeers.filter(remotePeerId => {
                 return remotePeerId !== newState.waitingPeers.remove;
             });
         }
@@ -44,15 +51,18 @@ class App extends Component {
         const room = newState.room ? newState.room : this.state.room;
         const myPeerId = newState.myPeerId ? newState.myPeerId : this.state.myPeerId;
         const state = {
-            mode: mode,
-            localStream: localStream,
-            cameraStream: cameraStream,
-            remoteStreams: remoteStreams,
-            waitingPeers: waitingPeers,
-            talkingPeer: talkingPeer,
-            talkingStatus: talkingStatus,
-            room: room,
-            myPeerId: myPeerId
+            mode,
+            localStream,
+            cameraStream,
+            screenStream,
+            screenShare,
+            remoteStreams,
+            speakerStreamKind,
+            waitingPeers,
+            talkingPeer,
+            talkingStatus,
+            room,
+            myPeerId
         };
         this.setState(state);
     }
@@ -66,6 +76,8 @@ class App extends Component {
                     mode={this.state.mode}
                     localStream={this.state.localStream}
                     cameraStream={this.state.cameraStream}
+                    screenStream={this.state.screenStream}
+                    screenShare={this.state.screenShare}
                     remoteStreams={this.state.remoteStreams}
                     waitingPeers={this.state.waitingPeers}
                     talkingPeer={this.state.talkingPeer}
@@ -76,6 +88,7 @@ class App extends Component {
                     mode={this.state.mode}
                     localStream={this.state.localStream}
                     remoteStreams={this.state.remoteStreams}
+                    speakerStreamKind={this.state.speakerStreamKind}
                     waitingPeers={this.state.waitingPeers}
                     talkingPeer={this.state.talkingPeer}
                     room={this.state.room}
@@ -126,12 +139,17 @@ class SpeakerUi extends Component {
             <div id="SpeakerUi">
                 <h1 className="none">講師</h1>
                 <h2 className="none">自分</h2>
-                <LocalVideo localStream={this.props.localStream} />
+                <LocalVideo
+                    localStream={this.props.localStream}
+                    cameraStream={this.props.cameraStream}
+                    screenStream={this.props.screenStream} />
                 <Config
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
-                    cameraStream={this.props.cameraStream} />
+                    cameraStream={this.props.cameraStream}
+                    screenStream={this.props.screenStream}
+                    screenShare={this.props.screenShare} />
                 <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -158,6 +176,31 @@ class AudienceUi extends Component {
             this.isWebinarStarted = true;
             webinar.bind(this)(null, 160, 90, 1, true);
         }
+        if (this.props.talkingStatus === 'none') {
+            return (
+                <div id="AudienceUi">
+                    <h1 className="none">視聴者</h1>
+                    <h2 className="none">講師</h2>
+                    <RemoteVideos
+                        localStream={this.props.localStream}
+                        remoteStreams={this.props.remoteStreams}
+                        speakerStreamKind={this.props.speakerStreamKind}
+                        target="speaker"
+                        waitingPeers={this.props.waitingPeers}
+                        talkingPeer={this.props.talkingPeer}
+                        update={this.props.update}
+                        talkingStatus={this.props.talkingStatus}
+                        room={this.props.room} />
+                    <h2 className="none">自分</h2>
+                    <h2 className="none">質問者</h2>
+                    <RemoteVideos
+                        remoteStreams={this.props.remoteStreams}
+                        talkingPeer={this.props.talkingPeer}
+                        target="questioner" />
+                </div>
+            );
+        }
+
         return (
             <div id="AudienceUi">
                 <h1 className="none">視聴者</h1>
@@ -165,6 +208,7 @@ class AudienceUi extends Component {
                 <RemoteVideos
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
+                    speakerStreamKind={this.props.speakerStreamKind}
                     target="speaker"
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
@@ -172,7 +216,8 @@ class AudienceUi extends Component {
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room} />
                 <h2 className="none">自分</h2>
-                <LocalVideo localStream={this.props.localStream} />
+                <LocalVideo
+                    localStream={this.props.localStream} />
                 <h2 className="none">質問者</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -188,10 +233,16 @@ class LocalVideo extends Component {
         if (!this.props.localStream) {
             return false;
         }
+        let className;
+        if (this.props.localStream && this.props.screenStream && this.props.localStream === this.props.screenStream) {
+            className = 'screen';
+        } else {
+            className = 'camera';
+        }
         const url = URL.createObjectURL(this.props.localStream);
         return (
             <div id="LocalVideo">
-                <video autoPlay muted src={url} />
+                <video autoPlay muted src={url} className={className} />
             </div>
         );
     }
@@ -200,7 +251,7 @@ class LocalVideo extends Component {
 class RemoteVideos extends Component {
     render () {
         const target = this.props.target;
-        const remoteStreamNodes = this.props.remoteStreams.map((stream) => {
+        const remoteStreamNodes = this.props.remoteStreams.map(stream => {
             const url = URL.createObjectURL(stream);
             switch (target) {
                 case 'speaker':
@@ -220,7 +271,7 @@ class RemoteVideos extends Component {
                 case 'audience':
                     return (
                         <div className="remote-video-wrapper">
-                            <video autoPlay src={url} />
+                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
                             <Answer
                                 remotePeerId={stream.peerId}
                                 waitingPeers={this.props.waitingPeers}
@@ -258,18 +309,18 @@ class Question extends Component {
             case 'none':
                 state.talkingStatus = 'none';
                 state.talkingPeer = null;
-                this.props.room.send('none');
-                this.props.localStream.getAudioTracks().forEach((track) => {
+                this.props.room.send({ talkingStatus: 'none' });
+                this.props.localStream.getAudioTracks().forEach(track => {
                     track.enabled = false;
                 });
-                this.props.localStream.getVideoTracks().forEach((track) => {
+                this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = false;
                 });
                 break;
             case 'waiting':
                 state.talkingStatus = 'waiting';
-                this.props.room.send('waiting');
-                this.props.localStream.getVideoTracks().forEach((track) => {
+                this.props.room.send({ talkingStatus: 'waiting' });
+                this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = true;
                 });
                 break;
@@ -285,7 +336,7 @@ class Question extends Component {
             case 'none':
                 return (
                     <div className="button-wrapper button-wrapper-call">
-                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">Call</button>
+                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">Question</button>
                     </div>
                 );
             case 'waiting':
@@ -297,7 +348,7 @@ class Question extends Component {
             case 'talking':
                 return (
                     <div className="button-wrapper button-wrapper-disconnect">
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">Disconnect</button>
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
                     </div>
                 );
             default:
@@ -326,8 +377,8 @@ class Answer extends Component {
             default:
                 break;
         }
-        this.props.room.send(talkingPeer);
-        this.props.update({talkingPeer: talkingPeer, waitingPeers: waitingPeers});
+        this.props.room.send({ talkingPeer });
+        this.props.update({ talkingPeer, waitingPeers });
     }
     render () {
         const remotePeerId = this.props.remotePeerId;
@@ -336,13 +387,13 @@ class Answer extends Component {
         if (talkingPeer === remotePeerId) {
             return (
                 <div className="button-wrapper button-wrapper-disconnect">
-                    <button onClick={this._onClick.bind(this)} data-new-status="none">Disconnect</button>
+                    <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
                 </div>
             );
         } else if (waitingPeers && waitingPeers.includes(remotePeerId)) {
             return (
                 <div className="button-wrapper button-wrapper-accept">
-                    <button onClick={this._onClick.bind(this)} data-new-status="talking">Accept</button>
+                    <button onClick={this._onClick.bind(this)} data-new-status="talking">Answer</button>
                 </div>
             );
         } else {
@@ -356,10 +407,8 @@ class Answer extends Component {
 }
 
 class Config extends Component {
-    _onChange (event) {
-        console.log(event.target.id);
-
-        if (event.target.id === 'camera') {
+    _onClick (event) {
+        if (event.currentTarget.id === 'camera') {
             if (this.props.localStream === this.props.cameraStream) {
                 return;
             }
@@ -369,67 +418,93 @@ class Config extends Component {
             return;
         }
 
-        if (this.props.localStream !== this.props.cameraStream) {
+        if (this.props.screenStream === this.props.cameraStream) {
             return;
         }
 
-        const screenshare = new SkyWay.ScreenShare({debug: true});
+        const screenShare = this.props.screenShare || new SkyWay.ScreenShare({debug: true});
+        if (!this.props.screenShare) {
+            this.props.update({ screenShare });
+        }
+
+        function successScreenShare (stream) {
+            console.log('successed screenshare');
+            this.props.room.replaceStream(stream);
+            this.props.room.send({streamKind: 'screen'});
+            this.props.update({
+                localStream: stream,
+                screenStream: stream
+            });
+        }
+
+        function failScreenShare (err) {
+            console.error('[error in starting screen share]', err);
+        }
+
+        function stopScreenShare () {
+            console.log('stop screen share');
+            this.props.room.replaceStream(this.props.cameraStream);
+            this.props.room.send({streamKind: 'camera'});
+            this.props.update({ localStream: this.props.cameraStream });
+        }
+
+        function startScreenShareFirst() {
+            screenShare.startScreenShare({
+                FrameRate: 5
+            }, successScreenShare.bind(this), failScreenShare.bind(this), stopScreenShare.bind(this));
+        }
 
         function startScreenShare() {
-            screenshare.startScreenShare({
-                Width: 1920,
-                Height: 1080,
+            screenShare.startScreenShare({
                 FrameRate: 5
-            }, (stream) => {
-                console.log('successed screenshare');
-                this.props.room.replaceStream(stream);
-                this.props.update({localStream: stream});
-            }, (err) => {
-                // onError
-                console.error('[error in starting screen share]', err);
-            }, () => {
-                // onStopscreenshare
-                console.log('stop screen share');
-                setTimeout(() => {
-                    this.props.update({localStream: this.props.cameraStream});
-                });
-                this.props.room.replaceStream(this.props.cameraStream);
-            });
+            }, () => {}, () => {}, () => {});
         }
 
         function installExtension() {
             chrome.webstore.install('', () => {
                 console.log('succeeded to install extension');
-            }, (ev) => {
+            }, ev => {
                 console.error('[error in installing extension]', ev);
             });
 
             window.addEventListener('message', function(ev) {
                 if(ev.data.type === "ScreenShareInjected") {
                     console.log('screen share extension is injected, get ready to use');
-                    startScreenShare();
+                    startScreenShareFirst.bind(this)();
                 }
             }, false);
         }
 
-        if (screenshare.isEnabledExtension()) {
-            startScreenShare.bind(this)();
+
+        if (screenShare.isEnabledExtension()) {
+            if (!this.props.screenShare) {
+                startScreenShareFirst.bind(this)();
+            } else {
+                startScreenShare.bind(this)();
+            }
         } else {
             installExtension();
         }
     }
     render () {
+        if (!this.props.localStream || this.props.localStream === this.props.cameraStream) {
+            return (
+                <div id="Config">
+                    <h2>Video Source</h2>
+                    <ButtonGroup>
+                        <Button id="camera" title="Camera" disabled><Glyphicon glyph="facetime-video" /></Button>
+                        <Button id="screen" title="Screen" onClick={this._onClick.bind(this)}><Glyphicon glyph="list-alt" /></Button>
+                    </ButtonGroup>
+                </div>
+            );
+        }
         return (
             <div id="Config">
                 <h2>Video Source</h2>
-                <label>
-                    <input type="radio" name="videoSource" id="camera" onChange={this._onChange.bind(this)} defaultChecked />
-                    Camera
-                </label>
-                <label>
-                    <input type="radio" name="videoSource" id="screen" onChange={this._onChange.bind(this)} />
-                    Screen
-                </label>
+                <ButtonGroup>
+                    <Button id="camera" title="Camera" onClick={this._onClick.bind(this)}><Glyphicon glyph="facetime-video" /></Button>
+                    <Button id="screen" title="Screen" disabled><Glyphicon glyph="list-alt" /></Button>
+                </ButtonGroup>
             </div>
         );
     }
@@ -449,9 +524,9 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         }
         peer.on('open', () => {
             _showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
-            this.props.update({myPeerId: peer.id});
+            this.props.update({ myPeerId: peer.id });
         });
-        peer.on('error', (err) => {
+        peer.on('error', err => {
             console.error(err.message);
         });
     }
@@ -463,12 +538,12 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             facingMode: 'user'
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
-        .then((stream) => {
+        .then(stream => {
             if (isMuted) {
-                stream.getAudioTracks().forEach((track) => {
+                stream.getAudioTracks().forEach(track => {
                     track.enabled = false;
                 });
-                stream.getVideoTracks().forEach((track) => {
+                stream.getVideoTracks().forEach(track => {
                     track.enabled = false;
                 });
             }
@@ -477,51 +552,43 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                 cameraStream: stream
             });
             _showRemoteVideo.bind(this)(stream);
-        }).catch((err) => {
+        }).catch(err => {
             console.error(err);
         });
     }
     function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
-        const room = peer.joinRoom(roomName, {mode: 'sfu', stream: _stream});
-        this.props.update({
-            room: room
-        });
+        const room = peer.joinRoom(roomName, { mode: 'sfu', stream: _stream });
+        this.props.update({ room });
         room.on('stream', (_stream) => {
             console.log('room.on(\'stream\')');
-            this.props.update({
-                remoteStreams: {add: _stream}
-            });
+            this.props.update({ remoteStreams: { add: _stream } });
         });
         room.on('removeStream', (_stream) => {
             console.log('room.on(\'removeStream\')');
-            this.props.update({
-                remoteStreams: {remove: _stream}
-            });
+            this.props.update({ remoteStreams: { remove: _stream } });
         });
         room.on('close', () => {
             console.log('room.on(\'close\')');
         });
-        room.on('peerJoin', (id) => {
+        room.on('peerJoin', id => {
             console.log('room.on(\'peerJoin\')');
             console.log(id);
             if (this.props.mode === 'speaker') {
-                room.send(this.props.talkingPeer);
+                room.send({ talkingPeer: this.props.talkingPeer });
             }
         });
-        room.on('peerLeave', (id) => {
-            console.log('room.on(\'peerLeave\')');
-            console.log(id);
+        room.on('peerLeave', id => {
+            console.log('room.on(\'peerLeave\'): ', id);
         });
-        room.on('data', (msg) => {
-            console.log('room.on(\'data\')');
-            console.log(msg);
+        room.on('data', msg => {
+            console.log('room.on(\'data\'): ', msg);
             let state = {};
             switch (this.props.mode) {
                 case 'speaker':
-                    if (msg.data === 'waiting') {
+                    if (msg.data.talkingStatus === 'waiting') {
                         state.waitingPeers = {add: msg.src};
-                    } else if (msg.data === 'none') {
+                    } else if (msg.data.talkingStatus === 'none') {
                         state.waitingPeers = {remove: msg.src};
                         state.talkingPeer = undefined;
                     }
@@ -530,29 +597,35 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                     if (msg.src !== 'speaker') {
                         return;
                     }
-                    if (this.props.talkingPeer === msg.data) {
+                    if (this.props.talkingPeer === msg.data.talkingPeer) {
                         return;
                     }
-                    const isTalking = (this.props.talkingStatus === 'talking');
-                    const willDisconnect = (!msg.data) || (msg.data !== this.props.myPeerId);
-                    const willTalk = (msg.data === this.props.myPeerId);
-                    if (isTalking && willDisconnect) {
-                        state.talkingStatus = 'none';
-                        this.props.localStream.getAudioTracks().forEach((track) => {
-                            track.enabled = false;
-                        });
-                        this.props.localStream.getVideoTracks().forEach((track) => {
-                            track.enabled = false;
-                        });
+                    if (msg.data.streamKind) {
+                        state.speakerStreamKind = msg.data.streamKind;
+                        break;
                     }
-                    if (!isTalking && willTalk) {
-                        state.talkingStatus = 'talking';
-                        this.props.localStream.getAudioTracks().forEach((track) => {
-                            track.enabled = true;
-                        });
+                    if (msg.data.hasOwnProperty('talkingPeer')) {
+                        const isTalking = (this.props.talkingStatus === 'talking');
+                        const willDisconnect = (msg.data.talkingPeer === null) || (msg.data.talkingPeer !== this.props.myPeerId);
+                        const willTalk = (msg.data.talkingPeer === this.props.myPeerId);
+                        if (isTalking && willDisconnect) {
+                            state.talkingStatus = 'none';
+                            this.props.localStream.getAudioTracks().forEach(track => {
+                                track.enabled = false;
+                            });
+                            this.props.localStream.getVideoTracks().forEach(track => {
+                                track.enabled = false;
+                            });
+                        }
+                        if (!isTalking && willTalk) {
+                            state.talkingStatus = 'talking';
+                            this.props.localStream.getAudioTracks().forEach(track => {
+                                track.enabled = true;
+                            });
+                        }
+                        state.talkingPeer = msg.data.talkingPeer;
+                        break;
                     }
-                    state.talkingPeer = msg.data;
-                    break;
                 default:
                     break;
             }
@@ -560,6 +633,8 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                 this.props.update(state);
             }
         });
+        room.on('log', logs => {console.info(logs)});
+        room.getLog();
         // skyway.js seems to close beforehand.
         /*
         window.addEventListener('beforeunload', () => {
