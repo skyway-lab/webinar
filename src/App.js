@@ -176,6 +176,31 @@ class AudienceUi extends Component {
             this.isWebinarStarted = true;
             webinar.bind(this)(null, 160, 90, 1, true);
         }
+        if (this.props.talkingStatus === 'none') {
+            return (
+                <div id="AudienceUi">
+                    <h1 className="none">視聴者</h1>
+                    <h2 className="none">講師</h2>
+                    <RemoteVideos
+                        localStream={this.props.localStream}
+                        remoteStreams={this.props.remoteStreams}
+                        speakerStreamKind={this.props.speakerStreamKind}
+                        target="speaker"
+                        waitingPeers={this.props.waitingPeers}
+                        talkingPeer={this.props.talkingPeer}
+                        update={this.props.update}
+                        talkingStatus={this.props.talkingStatus}
+                        room={this.props.room} />
+                    <h2 className="none">自分</h2>
+                    <h2 className="none">質問者</h2>
+                    <RemoteVideos
+                        remoteStreams={this.props.remoteStreams}
+                        talkingPeer={this.props.talkingPeer}
+                        target="questioner" />
+                </div>
+            );
+        }
+
         return (
             <div id="AudienceUi">
                 <h1 className="none">視聴者</h1>
@@ -191,7 +216,8 @@ class AudienceUi extends Component {
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room} />
                 <h2 className="none">自分</h2>
-                <LocalVideo localStream={this.props.localStream} />
+                <LocalVideo
+                    localStream={this.props.localStream} />
                 <h2 className="none">質問者</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
@@ -310,7 +336,7 @@ class Question extends Component {
             case 'none':
                 return (
                     <div className="button-wrapper button-wrapper-call">
-                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">Call</button>
+                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">Question</button>
                     </div>
                 );
             case 'waiting':
@@ -322,7 +348,7 @@ class Question extends Component {
             case 'talking':
                 return (
                     <div className="button-wrapper button-wrapper-disconnect">
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">Disconnect</button>
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
                     </div>
                 );
             default:
@@ -361,13 +387,13 @@ class Answer extends Component {
         if (talkingPeer === remotePeerId) {
             return (
                 <div className="button-wrapper button-wrapper-disconnect">
-                    <button onClick={this._onClick.bind(this)} data-new-status="none">Disconnect</button>
+                    <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
                 </div>
             );
         } else if (waitingPeers && waitingPeers.includes(remotePeerId)) {
             return (
                 <div className="button-wrapper button-wrapper-accept">
-                    <button onClick={this._onClick.bind(this)} data-new-status="talking">Accept</button>
+                    <button onClick={this._onClick.bind(this)} data-new-status="talking">Answer</button>
                 </div>
             );
         } else {

@@ -43,6 +43,10 @@
     margin-right: 0px;
 }
 
+#SelectMode button:focus {
+    outline: none;
+}
+
 /* SpeakerUi */
 
 #SpeakerUi #LocalVideo {
@@ -120,6 +124,10 @@
     font-size: 24px;
 }
 
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-accept button:focus {
+    outline: none;
+}
+
 #SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect {
     bottom: 8px;
 }
@@ -133,6 +141,10 @@
     font-weight: 100;
     font-size: 24px;
     padding: 0 12px;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect button:focus {
+    outline: none;
 }
 
 #SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-videooff {
@@ -205,6 +217,10 @@
     font-size: 24px;
     padding: 0 12px;
     margin-top: 24px;
+}
+
+#AudienceUi .button-wrapper button:focus {
+    outline: none;
 }
 
 #AudienceUi .remote-videos-questioner .remote-video-wrapper {
