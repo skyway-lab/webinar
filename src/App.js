@@ -130,13 +130,16 @@ class AlertMessage extends Component {
     _handleAlertDismiss() {
         this.props.update({ alerts: { remove: 'unstableSFU' } });
     }
+    _reload() {
+        location.reload();
+    }
     render () {
         let notSupportedWebRTC;
         if (this.props.alerts.includes('notSupportedWebRTC')) {
             notSupportedWebRTC = (
                 <Alert bsStyle="danger">
                     SkyWay Webinar doesn't suport your browser because your browser doesn't support WebRTC.
-                    Could you use <a href="https://www.google.co.jp/chrome/">Google Chrome</a>?
+                    Would you use <a href="https://www.google.co.jp/chrome/">Google Chrome</a>?
                 </Alert>
             );
         }
@@ -149,14 +152,33 @@ class AlertMessage extends Component {
                 </Alert>
             );
         }
-        if (notSupportedWebRTC || unstableSFU) {
+        let gUM;
+        if (this.props.alerts.includes('gUM')) {
+            gUM = (
+                <Alert bsStyle="danger">
+                    <p>
+                        SkyWay Webinar use microphone and camera, even if you are just watching.
+                        Anybody never see your audio and video unless you don't question.
+                        Would you allow to use?
+                    </p>
+                    <p>
+                        You have to reload this page if you deny onece.
+                    </p>
+                    <p>
+                        <Button bsStyle="danger" onClick={this._reload}>Reload</Button>
+                    </p>
+                </Alert>
+            );
+        }
+        if (notSupportedWebRTC || unstableSFU || gUM) {
             return (
                 <div id="Alerts">
-                    <Grid>
+                    <Grid fluid={true}>
                         <Row>
-                            <Col xs={12} md={8} mdOffset={2}>
+                            <Col xs={12} sm={5} smOffset={7} md={4} mdOffset={8} lg={3} lgOffset={9}>
                                 {notSupportedWebRTC}
                                 {unstableSFU}
+                                {gUM}
                             </Col>
                         </Row>
                     </Grid>
@@ -609,6 +631,8 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
         .then(stream => {
+            this.props.update({ alerts: { remove: 'gUM' } });
+            clearTimeout(timer);
             if (isMuted) {
                 stream.getAudioTracks().forEach(track => {
                     track.enabled = false;
@@ -624,7 +648,11 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             _showRemoteVideo.bind(this)(stream);
         }).catch(err => {
             console.error(err);
+            this.props.update({ alerts: { add: 'gUM' } });
         });
+        const timer = setTimeout(() => {
+            this.props.update({ alerts: { add: 'gUM' } });
+        }, 2000);
     }
     function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;

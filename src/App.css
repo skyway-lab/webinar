@@ -12,6 +12,8 @@
     position: absolute;
     width: 100%;
     font-weight: normal;
+    z-index: 100;
+    top: 10px;
 }
 
 /* SelectMode */
