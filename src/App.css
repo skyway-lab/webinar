@@ -8,6 +8,14 @@
 
 /* SelectMode */
 
+#Alerts {
+    position: absolute;
+    width: 100%;
+    font-weight: normal;
+}
+
+/* SelectMode */
+
 #SelectMode {
     display: -webkit-flex;
     display: -moz-flex;
