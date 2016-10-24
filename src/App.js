@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import './App.css';
-import { Button, ButtonGroup, Glyphicon } from 'react-bootstrap';
+import { Button, ButtonGroup, Glyphicon, Alert, Grid, Row, Col } from 'react-bootstrap';
 
 class App extends Component {
     constructor (props) {
         super(props);
         this.state = {
+            alerts: [],
             mode: null,
             localStream: null,
             cameraStream: null,
@@ -19,13 +20,30 @@ class App extends Component {
             room: null,
             myPeerId: null
         };
+        const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
+        if (!isSupportedWebRTC) {
+            this.state.alerts.push('notSupportedWebRTC');
+        }
+        const isSupportedPlanB = window.webkitRTCPeerConnection;
+        if (isSupportedWebRTC && !isSupportedPlanB) {
+            this.state.alerts.push('unstableSFU');
+        }
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
     update (newState) {
+        let alerts = this.state.alerts;
+        if (newState.alerts && newState.alerts.add) {
+            alerts.push(newState.alerts.add);
+        }
+        if (newState.alerts && newState.alerts.remove) {
+            alerts = alerts.filter(alert => {
+                return alert !== newState.alerts.remove;
+            });
+        }
         const mode = newState.mode ? newState.mode : this.state.mode;
-        const localStream = newState.hasOwnProperty('localStream') ? newState.localStream : this.state.localStream;
-        const cameraStream = newState.hasOwnProperty('cameraStream') ? newState.cameraStream : this.state.cameraStream;
-        const screenStream = newState.hasOwnProperty('screenStream') ? newState.screenStream : this.state.screenStream;
+        const localStream = newState.localStream ? newState.localStream : this.state.localStream;
+        const cameraStream = newState.cameraStream ? newState.cameraStream : this.state.cameraStream;
+        const screenStream = newState.screenStream ? newState.screenStream : this.state.screenStream;
         const screenShare = newState.screenShare ? newState.screenShare : this.state.screenShare;
         let remoteStreams = this.state.remoteStreams;
         if (newState.remoteStreams && newState.remoteStreams.add) {
@@ -46,11 +64,15 @@ class App extends Component {
                 return remotePeerId !== newState.waitingPeers.remove;
             });
         }
+
+        // don't evaluate newState.talkingPeer because newStage.talkingPeer may change to null
         const talkingPeer = newState.hasOwnProperty('talkingPeer') ? newState.talkingPeer : this.state.talkingPeer;
+
         const talkingStatus = newState.talkingStatus ? newState.talkingStatus : this.state.talkingStatus;
         const room = newState.room ? newState.room : this.state.room;
         const myPeerId = newState.myPeerId ? newState.myPeerId : this.state.myPeerId;
         const state = {
+            alerts,
             mode,
             localStream,
             cameraStream,
@@ -69,7 +91,12 @@ class App extends Component {
     render() {
         return (
             <div className="App">
-                <SelectMode update={this.update} mode={this.state.mode} />
+                <AlertMessage
+                    update={this.update}
+                    alerts={this.state.alerts} />
+                <SelectMode
+                    update={this.update}
+                    mode={this.state.mode} />
                 <SpeakerUi
                     roomName="skyway_webinar"
                     update={this.update}
@@ -95,6 +122,71 @@ class App extends Component {
                     talkingStatus={this.state.talkingStatus}
                     myPeerId={this.state.myPeerId} />
             </div>
+        );
+    }
+}
+
+class AlertMessage extends Component {
+    _handleAlertDismiss() {
+        this.props.update({ alerts: { remove: 'unstableSFU' } });
+    }
+    _reload() {
+        location.reload();
+    }
+    render () {
+        let notSupportedWebRTC;
+        if (this.props.alerts.includes('notSupportedWebRTC')) {
+            notSupportedWebRTC = (
+                <Alert bsStyle="danger">
+                    SkyWay Webinar doesn't suport your browser because your browser doesn't support WebRTC.
+                    Would you use <a href="https://www.google.co.jp/chrome/">Google Chrome</a>?
+                </Alert>
+            );
+        }
+        let unstableSFU;
+        if (this.props.alerts.includes('unstableSFU')) {
+            unstableSFU = (
+                <Alert bsStyle="warning" onDismiss={this._handleAlertDismiss.bind(this)}>
+                    Currently, Firefox are unstable in using SKyWay Webinar and we are fixing problems.
+                    So we recommend <a href="https://www.google.co.jp/chrome/">Google Chrome</a> now.
+                </Alert>
+            );
+        }
+        let gUM;
+        if (this.props.alerts.includes('gUM')) {
+            gUM = (
+                <Alert bsStyle="danger">
+                    <p>
+                        SkyWay Webinar use microphone and camera, even if you are just watching.
+                        Anybody never see your audio and video unless you don't question.
+                        Would you allow to use?
+                    </p>
+                    <p>
+                        You have to reload this page if you deny onece.
+                    </p>
+                    <p>
+                        <Button bsStyle="danger" onClick={this._reload}>Reload</Button>
+                    </p>
+                </Alert>
+            );
+        }
+        if (notSupportedWebRTC || unstableSFU || gUM) {
+            return (
+                <div id="Alerts">
+                    <Grid fluid={true}>
+                        <Row>
+                            <Col xs={12} sm={5} smOffset={7} md={4} mdOffset={8} lg={3} lgOffset={9}>
+                                {notSupportedWebRTC}
+                                {unstableSFU}
+                                {gUM}
+                            </Col>
+                        </Row>
+                    </Grid>
+                </div>
+            );
+        }
+        return (
+            <div></div>
         );
     }
 }
@@ -539,6 +631,8 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
         .then(stream => {
+            this.props.update({ alerts: { remove: 'gUM' } });
+            clearTimeout(timer);
             if (isMuted) {
                 stream.getAudioTracks().forEach(track => {
                     track.enabled = false;
@@ -554,7 +648,11 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             _showRemoteVideo.bind(this)(stream);
         }).catch(err => {
             console.error(err);
+            this.props.update({ alerts: { add: 'gUM' } });
         });
+        const timer = setTimeout(() => {
+            this.props.update({ alerts: { add: 'gUM' } });
+        }, 2000);
     }
     function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
