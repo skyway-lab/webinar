@@ -352,7 +352,7 @@ class RemoteVideos extends Component {
                     }
                     return (
                         <div className="remote-video-wrapper">
-                            <video autoPlay src={url} />
+                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
                             <Question
                                 localStream={this.props.localStream}
                                 update={this.props.update}
@@ -363,7 +363,7 @@ class RemoteVideos extends Component {
                 case 'audience':
                     return (
                         <div className="remote-video-wrapper">
-                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
+                            <video autoPlay src={url} />
                             <Answer
                                 remotePeerId={stream.peerId}
                                 waitingPeers={this.props.waitingPeers}
@@ -479,19 +479,23 @@ class Answer extends Component {
         if (talkingPeer === remotePeerId) {
             return (
                 <div className="button-wrapper button-wrapper-disconnect">
-                    <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
+                    <div className="button-inner-wrapper">
+                        <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
+                    </div>
                 </div>
             );
         } else if (waitingPeers && waitingPeers.includes(remotePeerId)) {
             return (
                 <div className="button-wrapper button-wrapper-accept">
-                    <button onClick={this._onClick.bind(this)} data-new-status="talking">Answer</button>
+                    <div className="button-inner-wrapper">
+                        <button onClick={this._onClick.bind(this)} data-new-status="talking">Answer</button>
+                    </div>
                 </div>
             );
         } else {
             return (
                 <div className="button-wrapper button-wrapper-videooff">
-                    Video Off
+                    Audience
                 </div>
             );
         }

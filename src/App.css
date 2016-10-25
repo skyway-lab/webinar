@@ -118,32 +118,19 @@
 #SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper {
     position: absolute;
     bottom: 0px;
-    text-align: center;
-    width: 100%;
-    font-size: 24px;
-}
-
-#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-accept button {
-    border: 0;
     width: 100%;
     height: 50vh;
-    display: block;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #eee;
-    font-weight: 100;
     font-size: 24px;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-accept button:focus {
-    outline: none;
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper .button-inner-wrapper {
+    position: absolute;
+    bottom: 10px;
+    text-aligh: center;
+    width: 100%;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect {
-    bottom: 8px;
-}
-
-#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect button {
-    border: 0;
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper button {
     line-height: 36px;
     background-color: rgba(0, 0, 0, 0.25);
     border: #eee double 3px;
@@ -153,8 +140,12 @@
     padding: 0 12px;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-disconnect button:focus {
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper button:focus {
     outline: none;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-accept {
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
 #SpeakerUi .remote-videos-audience .remote-video-wrapper .button-wrapper-videooff {
@@ -218,7 +209,6 @@
 }
 
 #AudienceUi .button-wrapper button {
-    border: 0;
     line-height: 36px;
     background-color: rgba(0, 0, 0, 0.25);
     border: #eee double 3px;
