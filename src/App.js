@@ -352,7 +352,7 @@ class RemoteVideos extends Component {
                     }
                     return (
                         <div className="remote-video-wrapper">
-                            <video autoPlay src={url} />
+                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
                             <Question
                                 localStream={this.props.localStream}
                                 update={this.props.update}
@@ -363,7 +363,7 @@ class RemoteVideos extends Component {
                 case 'audience':
                     return (
                         <div className="remote-video-wrapper">
-                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
+                            <video autoPlay src={url} />
                             <Answer
                                 remotePeerId={stream.peerId}
                                 waitingPeers={this.props.waitingPeers}
