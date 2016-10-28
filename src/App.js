@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import { Button, ButtonGroup, Glyphicon, Alert, Grid, Row, Col } from 'react-bootstrap';
+import CONST from './constants';
 
 class App extends Component {
     constructor (props) {
@@ -98,7 +99,7 @@ class App extends Component {
                     update={this.update}
                     mode={this.state.mode} />
                 <SpeakerUi
-                    roomName="skyway_webinar"
+                    roomName={CONST.ROOM_NAME}
                     update={this.update}
                     mode={this.state.mode}
                     localStream={this.state.localStream}
@@ -110,7 +111,7 @@ class App extends Component {
                     talkingPeer={this.state.talkingPeer}
                     room={this.state.room} />
                 <AudienceUi
-                    roomName="skyway_webinar"
+                    roomName={CONST.ROOM_NAME}
                     update={this.update}
                     mode={this.state.mode}
                     localStream={this.state.localStream}
@@ -225,7 +226,7 @@ class SpeakerUi extends Component {
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)('speaker', 1280, 720, 5, false);
+            webinar.bind(this)(CONST.SPEAKER_PEER_ID, 1280, 720, 5, false);
         }
         return (
             <div id="SpeakerUi">
@@ -347,7 +348,7 @@ class RemoteVideos extends Component {
             const url = URL.createObjectURL(stream);
             switch (target) {
                 case 'speaker':
-                    if (stream.peerId !== 'speaker') {
+                    if (stream.peerId !== CONST.SPEAKER_PEER_ID) {
                         return false;
                     }
                     return (
@@ -696,7 +697,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
                     }
                     break;
                 case 'audience':
-                    if (msg.src !== 'speaker') {
+                    if (msg.src !== CONST.SPEAKER_PEER_ID) {
                         return;
                     }
                     if (this.props.talkingPeer === msg.data.talkingPeer) {
