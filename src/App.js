@@ -92,7 +92,7 @@ class App extends Component {
     render() {
         return (
             <div className="App">
-                <AlertMessage
+                <Alerts
                     update={this.update}
                     alerts={this.state.alerts} />
                 <SelectMode
@@ -127,7 +127,7 @@ class App extends Component {
     }
 }
 
-class AlertMessage extends Component {
+class Alerts extends Component {
     _handleAlertDismiss() {
         this.props.update({ alerts: { remove: 'unstableSFU' } });
     }
@@ -230,20 +230,13 @@ class SpeakerUi extends Component {
         }
         return (
             <div id="SpeakerUi">
-                <h1 className="none">講師</h1>
-                <h2 className="none">自分</h2>
                 <LocalVideo
-                    localStream={this.props.localStream}
-                    cameraStream={this.props.cameraStream}
-                    screenStream={this.props.screenStream} />
-                <Config
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
                     cameraStream={this.props.cameraStream}
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare} />
-                <h2 className="none">聴衆</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     target="audience"
@@ -272,8 +265,6 @@ class AudienceUi extends Component {
         if (this.props.talkingStatus === 'none') {
             return (
                 <div id="AudienceUi">
-                    <h1 className="none">視聴者</h1>
-                    <h2 className="none">講師</h2>
                     <RemoteVideos
                         localStream={this.props.localStream}
                         remoteStreams={this.props.remoteStreams}
@@ -284,8 +275,6 @@ class AudienceUi extends Component {
                         update={this.props.update}
                         talkingStatus={this.props.talkingStatus}
                         room={this.props.room} />
-                    <h2 className="none">自分</h2>
-                    <h2 className="none">質問者</h2>
                     <RemoteVideos
                         remoteStreams={this.props.remoteStreams}
                         talkingPeer={this.props.talkingPeer}
@@ -296,8 +285,6 @@ class AudienceUi extends Component {
 
         return (
             <div id="AudienceUi">
-                <h1 className="none">視聴者</h1>
-                <h2 className="none">講師</h2>
                 <RemoteVideos
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
@@ -308,10 +295,8 @@ class AudienceUi extends Component {
                     update={this.props.update}
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room} />
-                <h2 className="none">自分</h2>
                 <LocalVideo
                     localStream={this.props.localStream} />
-                <h2 className="none">質問者</h2>
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     talkingPeer={this.props.talkingPeer}
@@ -335,7 +320,15 @@ class LocalVideo extends Component {
         const url = URL.createObjectURL(this.props.localStream);
         return (
             <div id="LocalVideo">
+                <h2><span>ON AIR</span></h2>
                 <video autoPlay muted src={url} className={className} />
+                <Config
+                    room={this.props.room}
+                    update={this.props.update}
+                    localStream={this.props.localStream}
+                    cameraStream={this.props.cameraStream}
+                    screenStream={this.props.screenStream}
+                    screenShare={this.props.screenShare} />
             </div>
         );
     }
@@ -353,24 +346,24 @@ class RemoteVideos extends Component {
                     }
                     return (
                         <div className="remote-video-wrapper">
-                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
                             <Question
                                 localStream={this.props.localStream}
                                 update={this.props.update}
                                 talkingStatus={this.props.talkingStatus}
                                 room={this.props.room} />
+                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
                         </div>
                     );
                 case 'audience':
                     return (
                         <div className="remote-video-wrapper">
-                            <video autoPlay src={url} />
                             <Answer
                                 remotePeerId={stream.peerId}
                                 waitingPeers={this.props.waitingPeers}
                                 talkingPeer={this.props.talkingPeer}
                                 room={this.props.room}
                                 update={this.props.update} />
+                            <video autoPlay src={url} />
                         </div>
                     );
                 case 'questioner':
@@ -388,6 +381,7 @@ class RemoteVideos extends Component {
         });
         return (
             <div className={"remote-videos remote-videos-" + target}>
+                <h2><span>Audience</span></h2>
                 {remoteStreamNodes}
             </div>
         );
@@ -479,24 +473,32 @@ class Answer extends Component {
         const talkingPeer = this.props.talkingPeer;
         if (talkingPeer === remotePeerId) {
             return (
-                <div className="button-wrapper button-wrapper-disconnect">
-                    <div className="button-inner-wrapper">
+                <div className="answers answers-disconnect">
+                    <div className="answers-message">
+                        Questioning
+                    </div>
+                    <div className="button-wrapper">
                         <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
                     </div>
                 </div>
             );
         } else if (waitingPeers && waitingPeers.includes(remotePeerId)) {
             return (
-                <div className="button-wrapper button-wrapper-accept">
-                    <div className="button-inner-wrapper">
+                <div className="answers answers-accept">
+                    <div className="answers-message">
+                        Asking a question
+                    </div>
+                    <div className="button-wrapper">
                         <button onClick={this._onClick.bind(this)} data-new-status="talking">Answer</button>
                     </div>
                 </div>
             );
         } else {
             return (
-                <div className="button-wrapper button-wrapper-videooff">
-                    Audience
+                <div className="answers answers-videooff">
+                    <div className="answers-message">
+                        Just watching
+                    </div>
                 </div>
             );
         }
@@ -587,7 +589,6 @@ class Config extends Component {
         if (!this.props.localStream || this.props.localStream === this.props.cameraStream) {
             return (
                 <div id="Config">
-                    <h2>Video Source</h2>
                     <ButtonGroup>
                         <Button id="camera" title="Camera" disabled><Glyphicon glyph="facetime-video" /></Button>
                         <Button id="screen" title="Screen" onClick={this._onClick.bind(this)}><Glyphicon glyph="list-alt" /></Button>
@@ -597,7 +598,6 @@ class Config extends Component {
         }
         return (
             <div id="Config">
-                <h2>Video Source</h2>
                 <ButtonGroup>
                     <Button id="camera" title="Camera" onClick={this._onClick.bind(this)}><Glyphicon glyph="facetime-video" /></Button>
                     <Button id="screen" title="Screen" disabled><Glyphicon glyph="list-alt" /></Button>
@@ -629,9 +629,9 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
     }
     function _showLocalVideo(__width, __height, __framerate, __isMuted) {
         const videoConstraints = {
-            width: { max: __width },
-            height: { max: __height },
-            frameRate: 5,
+            width: __width,
+            height: __height,
+            frameRate: __framerate,
             facingMode: 'user'
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
