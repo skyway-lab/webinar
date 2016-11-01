@@ -240,7 +240,7 @@ class SpeakerUi extends Component {
                     mode={this.props.mode} />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
-                    target="audience"
+                    opponent="audience"
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
                     room={this.props.room}
@@ -270,7 +270,7 @@ class AudienceUi extends Component {
                         localStream={this.props.localStream}
                         remoteStreams={this.props.remoteStreams}
                         speakerStreamKind={this.props.speakerStreamKind}
-                        target="speaker"
+                        opponent="speaker"
                         waitingPeers={this.props.waitingPeers}
                         talkingPeer={this.props.talkingPeer}
                         update={this.props.update}
@@ -279,7 +279,7 @@ class AudienceUi extends Component {
                     <RemoteVideos
                         remoteStreams={this.props.remoteStreams}
                         talkingPeer={this.props.talkingPeer}
-                        target="questioner" />
+                        opponent="questioner" />
                 </div>
             );
         }
@@ -290,7 +290,7 @@ class AudienceUi extends Component {
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
                     speakerStreamKind={this.props.speakerStreamKind}
-                    target="speaker"
+                    opponent="speaker"
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
                     update={this.props.update}
@@ -302,7 +302,7 @@ class AudienceUi extends Component {
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     talkingPeer={this.props.talkingPeer}
-                    target="questioner" />
+                    opponent="questioner" />
             </div>
         );
     }
@@ -359,10 +359,10 @@ class LocalVideo extends Component {
 
 class RemoteVideos extends Component {
     render () {
-        const target = this.props.target;
+        const opponent = this.props.opponent;
         const remoteStreamNodes = this.props.remoteStreams.map(stream => {
             const url = URL.createObjectURL(stream);
-            switch (target) {
+            switch (opponent) {
                 case 'speaker':
                     if (stream.peerId !== CONST.SPEAKER_PEER_ID) {
                         return false;
@@ -412,7 +412,7 @@ class RemoteVideos extends Component {
             }
         });
         return (
-            <div className={"remote-videos remote-videos-" + target}>
+            <div className={"remote-videos remote-videos-" + opponent}>
                 <h2><span>Audience</span></h2>
                 {remoteStreamNodes}
             </div>
