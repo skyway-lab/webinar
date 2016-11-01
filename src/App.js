@@ -381,7 +381,10 @@ class RemoteVideos extends Component {
                                 update={this.props.update}
                                 talkingStatus={this.props.talkingStatus}
                                 room={this.props.room} />
-                            <video className={this.props.speakerStreamKind} autoPlay src={url} />
+                            <Video
+                                muted={false}
+                                className={this.props.speakerStreamKind}
+                                src={url} />
                         </div>
                     );
                 case 'audience':
@@ -393,7 +396,10 @@ class RemoteVideos extends Component {
                                 talkingPeer={this.props.talkingPeer}
                                 room={this.props.room}
                                 update={this.props.update} />
-                            <video autoPlay src={url} />
+                            <Video
+                                muted={false}
+                                className={''}
+                                src={url} />
                         </div>
                     );
                 case 'questioner':
@@ -402,7 +408,10 @@ class RemoteVideos extends Component {
                     }
                     return (
                         <div className="remote-video-wrapper">
-                            <video autoPlay src={url} />
+                            <Video
+                                muted={false}
+                                className={''}
+                                src={url} />
                         </div>
                     );
                 default:
