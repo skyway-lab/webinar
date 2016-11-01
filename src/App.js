@@ -607,9 +607,8 @@ class Config extends Component {
     }
 }
 
-function webinar(myPeerId, width, height, framerate, isMuted) {
     let peer;
-    function _connectToSkyWay(_myPeerId, _width, _height, _framerate, _isMuted) {
+    function _connectToSkyWay(_myPeerId, _width, _height, _frameRate, _isMuted) {
         if (_myPeerId) {
             peer = new Peer(_myPeerId, {
                 key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
@@ -620,18 +619,18 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
             });
         }
         peer.on('open', () => {
-            _showLocalVideo.bind(this)(_width, _height, _framerate, _isMuted);
+            _showLocalVideo.bind(this)(_width, _height, _frameRate, _isMuted);
             this.props.update({ myPeerId: peer.id });
         });
         peer.on('error', err => {
             console.error(err.message);
         });
     }
-    function _showLocalVideo(__width, __height, __framerate, __isMuted) {
+    function _showLocalVideo(__width, __height, __frameRate, __isMuted) {
         const videoConstraints = {
             width: __width,
             height: __height,
-            frameRate: __framerate,
+            frameRate: __frameRate,
             facingMode: 'user'
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
@@ -746,7 +745,7 @@ function webinar(myPeerId, width, height, framerate, isMuted) {
         }, false);
         */
     }
-    _connectToSkyWay.bind(this)(myPeerId, width, height, framerate, isMuted);
+    _connectToSkyWay.bind(this)(myPeerId, width, height, frameRate, isMuted);
 }
 
 export default App;
