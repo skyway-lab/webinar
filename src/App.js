@@ -339,24 +339,17 @@ class LocalVideo extends Component {
                 );
                 break;
             case 'audience':
-                title = (
-                    <div className="none"></div>
-                );
-                className = '';
-                config = (
-                    <div className="none"></div>
-                );
                 break;
             default:
                 break;
         }
-        const src = URL.createObjectURL(this.props.localStream);
+        const url = URL.createObjectURL(this.props.localStream);
         return (
             <div id="LocalVideo">
                 {title}
                 <Video
                     muted={true}
-                    src={src}
+                    src={url}
                     className={className} />
                 {config}
             </div>
