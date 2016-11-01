@@ -316,32 +316,26 @@ class LocalVideo extends Component {
         let title;
         let className;
         let config;
-        switch (this.props.mode) {
-            case 'speaker':
-                title = (
-                    <h2><span>ON AIR</span></h2>
-                );
-                const hasScreenStream = !!(this.props.screenStream);
-                const doesScreenStreamUsed = this.props.localStream === this.props.screenStream;
-                if (hasScreenStream && doesScreenStreamUsed) {
-                    className = 'screen';
-                } else {
-                    className = 'camera';
-                }
-                config = (
-                    <Config
-                        room={this.props.room}
-                        update={this.props.update}
-                        localStream={this.props.localStream}
-                        cameraStream={this.props.cameraStream}
-                        screenStream={this.props.screenStream}
-                        screenShare={this.props.screenShare} />
-                );
-                break;
-            case 'audience':
-                break;
-            default:
-                break;
+        if (this.props.mode === 'speaker') {
+            title = (
+                <h2><span>ON AIR</span></h2>
+            );
+            const hasScreenStream = !!(this.props.screenStream);
+            const doesScreenStreamUsed = this.props.localStream === this.props.screenStream;
+            if (hasScreenStream && doesScreenStreamUsed) {
+                className = 'screen';
+            } else {
+                className = 'camera';
+            }
+            config = (
+                <Config
+                    room={this.props.room}
+                    update={this.props.update}
+                    localStream={this.props.localStream}
+                    cameraStream={this.props.cameraStream}
+                    screenStream={this.props.screenStream}
+                    screenShare={this.props.screenShare} />
+            );
         }
         const url = URL.createObjectURL(this.props.localStream);
         return (
