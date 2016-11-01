@@ -80,10 +80,10 @@
       width: 100%;
 
       span {
-        background-color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 0, 0, 0.6);
         padding: 2px 8px;
         border-radius: 14px;
-        color: #222;
+        color: #000;
       }
     }
 
@@ -136,11 +136,21 @@
       }
     }
 
-    .remote-video-wrapper {
+    .remote-video {
       height: 50vh;
       flex-basis: 100vw;
       overflow: hidden;
       position: relative;
+      border-left: 1px solid #444;
+      border-right: 1px solid #444;
+
+      &:first-child {
+        border-left: 0;
+      }
+
+      &:last-child {
+        border-right: 0;
+      }
 
       video {
         object-fit: contain;
@@ -202,7 +212,7 @@
       display: none;
     }
 
-    .remote-video-wrapper {
+    .remote-video {
       margin: 0px;
       padding: 0px;
       height: 100vh;
@@ -276,7 +286,7 @@
       display: none;
     }
 
-    .remote-video-wrapper {
+    .remote-video {
       position: absolute;
       bottom: 10px;
       left: 10px;
@@ -312,4 +322,8 @@
 
 .none {
   display: none;
+}
+
+.red {
+  color: #f00 !important;
 }

@@ -10,7 +10,7 @@
   position: absolute;
   width: 100%;
   font-weight: normal;
-  z-index: 100;
+  z-index: 200;
   top: 10px;
 }
 
@@ -79,10 +79,10 @@
 }
 
 #SpeakerUi #LocalVideo h2 span {
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 0, 0, 0.6);
   padding: 2px 8px;
   border-radius: 14px;
-  color: #222;
+  color: #000;
 }
 
 #SpeakerUi #LocalVideo video {
@@ -132,14 +132,24 @@
   color: #222;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video-wrapper {
+#SpeakerUi .remote-videos-audience .remote-video {
   height: 50vh;
   flex-basis: 100vw;
   overflow: hidden;
   position: relative;
+  border-left: 1px solid #444;
+  border-right: 1px solid #444;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video-wrapper video {
+#SpeakerUi .remote-videos-audience .remote-video:first-child {
+  border-left: 0;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video:last-child {
+  border-right: 0;
+}
+
+#SpeakerUi .remote-videos-audience .remote-video video {
   object-fit: contain;
   width: 100%;
   height: 100%;
@@ -194,24 +204,24 @@
   display: none;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video-wrapper {
+#AudienceUi .remote-videos-speaker .remote-video {
   margin: 0px;
   padding: 0px;
   height: 100vh;
   overflow: hidden;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video-wrapper video {
+#AudienceUi .remote-videos-speaker .remote-video video {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video-wrapper video.camera {
+#AudienceUi .remote-videos-speaker .remote-video video.camera {
   object-fit: cover;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video-wrapper video.screen {
+#AudienceUi .remote-videos-speaker .remote-video video.screen {
   object-fit: contain;
 }
 
@@ -266,7 +276,7 @@
   display: none;
 }
 
-#AudienceUi .remote-videos-questioner .remote-video-wrapper {
+#AudienceUi .remote-videos-questioner .remote-video {
   position: absolute;
   bottom: 10px;
   left: 10px;
@@ -275,7 +285,7 @@
   box-shadow: 0 0 10px 0 black;
 }
 
-#AudienceUi .remote-videos-questioner .remote-video-wrapper video {
+#AudienceUi .remote-videos-questioner .remote-video video {
   object-fit: cover;
   width: 100%;
   height: 100%;
@@ -297,4 +307,8 @@
 /* Utilities */
 .none {
   display: none;
+}
+
+.red {
+  color: #f00 !important;
 }

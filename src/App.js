@@ -369,62 +369,80 @@ class LocalVideo extends Component {
 
 class RemoteVideos extends Component {
     render () {
-        const opponent = this.props.opponent;
-        const remoteStreamNodes = this.props.remoteStreams.map(stream => {
-            const url = URL.createObjectURL(stream);
-            switch (opponent) {
-                case 'speaker':
-                    if (stream.peerId !== CONST.SPEAKER_PEER_ID) {
-                        return false;
-                    }
-                    return (
-                        <div className="remote-video-wrapper">
-                            <Question
-                                localStream={this.props.localStream}
-                                update={this.props.update}
-                                talkingStatus={this.props.talkingStatus}
-                                room={this.props.room} />
-                            <Video
-                                muted={false}
-                                className={this.props.speakerStreamKind}
-                                src={url} />
-                        </div>
-                    );
-                case 'audience':
-                    return (
-                        <div className="remote-video-wrapper">
-                            <Answer
-                                remotePeerId={stream.peerId}
-                                waitingPeers={this.props.waitingPeers}
-                                talkingPeer={this.props.talkingPeer}
-                                room={this.props.room}
-                                update={this.props.update} />
-                            <Video
-                                muted={false}
-                                className={''}
-                                src={url} />
-                        </div>
-                    );
-                case 'questioner':
-                    if (stream.peerId !== this.props.talkingPeer) {
-                        return false;
-                    }
-                    return (
-                        <div className="remote-video-wrapper">
-                            <Video
-                                muted={false}
-                                className={''}
-                                src={url} />
-                        </div>
-                    );
-                default:
-                    return false;
-            }
-        });
-        return (
-            <div className={"remote-videos remote-videos-" + opponent}>
+        let title;
+        if (this.props.opponent === 'audience') {
+            title = (
                 <h2><span>Audience</span></h2>
-                {remoteStreamNodes}
+            );
+        }
+        return (
+            <div className={"remote-videos remote-videos-" + this.props.opponent}>
+                {title}
+                {this.props.remoteStreams.map(stream => (
+                    <RemoteVideo
+                        opponent={this.props.opponent}
+                        localStream={this.props.localStream}
+                        update={this.props.update}
+                        talkingStatus={this.props.talkingStatus}
+                        waitingPeers={this.props.waitingPeers}
+                        talkingPeer={this.props.talkingPeer}
+                        room={this.props.room}
+                        speakerStreamKind={this.props.speakerStreamKind}
+                        stream={stream} />
+                ))}
+            </div>
+        );
+    }
+}
+
+class RemoteVideo extends Component {
+    render () {
+        const stream = this.props.stream;
+        const url = URL.createObjectURL(stream);
+        let question;
+        let answer;
+        switch (this.props.opponent) {
+            case 'speaker':
+                let isSpeaker = stream.peerId === CONST.SPEAKER_PEER_ID;
+                if (!isSpeaker) {
+                    return false;
+                }
+                question = (
+                    <Question
+                        localStream={this.props.localStream}
+                        update={this.props.update}
+                        talkingStatus={this.props.talkingStatus}
+                        room={this.props.room} />
+                );
+                break;
+            case 'audience':
+                answer = (
+                    <Answer
+                        remotePeerId={stream.peerId}
+                        waitingPeers={this.props.waitingPeers}
+                        talkingPeer={this.props.talkingPeer}
+                        room={this.props.room}
+                        update={this.props.update} />
+                );
+                break;
+            case 'questioner':
+                let isQuestioner = stream.peerId === this.props.talkingPeer;
+                if (!isQuestioner) {
+                    return false;
+                }
+                break;
+            default:
+                return false;
+                break;
+        }
+        return (
+            <div className="remote-video">
+                {question}
+                {answer}
+                <Video
+                    muted={false}
+                    className={this.props.speakerStreamKind}
+                    src={url} />
             </div>
         );
     }
