@@ -171,7 +171,22 @@ class Alerts extends Component {
                 </Alert>
             );
         }
-        if (notSupportedWebRTC || unstableSFU || gUM) {
+        let roomPermission;
+        if (this.props.alerts.includes('roomPermission')) {
+            roomPermission = (
+                <Alert bsStyle="danger">
+                    <p>
+                        An error has occured in SkyWay Room API.
+                        This error sometimes happens because the API is still alpha version.
+                        Could you reload the page?
+                    </p>
+                    <p>
+                        <Button bsStyle="danger" onClick={this._reload}>Reload</Button>
+                    </p>
+                </Alert>
+            );
+        }
+        if (notSupportedWebRTC || unstableSFU || gUM || roomPermission) {
             return (
                 <div id="Alerts">
                     <Grid fluid={true}>
@@ -180,6 +195,7 @@ class Alerts extends Component {
                                 {notSupportedWebRTC}
                                 {unstableSFU}
                                 {gUM}
+                                {roomPermission}
                             </Col>
                         </Row>
                     </Grid>
@@ -663,6 +679,9 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
         });
         peer.on('error', err => {
             console.error(err.message);
+            if (err.message === 'You do not have permission to send to this room') {
+                this.props.update({ alerts: { add: 'roomPermission' } });
+            }
         });
     }
     function _showLocalVideo(__width, __height, __frameRate, __isMuted) {
