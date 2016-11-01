@@ -236,7 +236,8 @@ class SpeakerUi extends Component {
                     localStream={this.props.localStream}
                     cameraStream={this.props.cameraStream}
                     screenStream={this.props.screenStream}
-                    screenShare={this.props.screenShare} />
+                    screenShare={this.props.screenShare}
+                    mode={this.props.mode} />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     target="audience"
@@ -296,7 +297,8 @@ class AudienceUi extends Component {
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room} />
                 <LocalVideo
-                    localStream={this.props.localStream} />
+                    localStream={this.props.localStream}
+                    mode={this.props.mode} />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     talkingPeer={this.props.talkingPeer}
@@ -311,24 +313,52 @@ class LocalVideo extends Component {
         if (!this.props.localStream) {
             return false;
         }
+        let title;
         let className;
-        if (this.props.localStream && this.props.screenStream && this.props.localStream === this.props.screenStream) {
-            className = 'screen';
-        } else {
-            className = 'camera';
+        let config;
+        switch (this.props.mode) {
+            case 'speaker':
+                title = (
+                    <h2><span>ON AIR</span></h2>
+                );
+                const hasScreenStream = !!(this.props.screenStream);
+                const doesScreenStreamUsed = this.props.localStream === this.props.screenStream;
+                if (hasScreenStream && doesScreenStreamUsed) {
+                    className = 'screen';
+                } else {
+                    className = 'camera';
+                }
+                config = (
+                    <Config
+                        room={this.props.room}
+                        update={this.props.update}
+                        localStream={this.props.localStream}
+                        cameraStream={this.props.cameraStream}
+                        screenStream={this.props.screenStream}
+                        screenShare={this.props.screenShare} />
+                );
+                break;
+            case 'audience':
+                title = (
+                    <div className="none"></div>
+                );
+                className = '';
+                config = (
+                    <div className="none"></div>
+                );
+                break;
+            default:
+                break;
         }
-        const url = URL.createObjectURL(this.props.localStream);
+        const src = URL.createObjectURL(this.props.localStream);
         return (
             <div id="LocalVideo">
-                <h2><span>ON AIR</span></h2>
-                <video autoPlay muted src={url} className={className} />
-                <Config
-                    room={this.props.room}
-                    update={this.props.update}
-                    localStream={this.props.localStream}
-                    cameraStream={this.props.cameraStream}
-                    screenStream={this.props.screenStream}
-                    screenShare={this.props.screenShare} />
+                {title}
+                <VideoElement
+                    muted={true}
+                    src={src}
+                    className={className} />
+                {config}
             </div>
         );
     }
@@ -607,6 +637,19 @@ class Config extends Component {
     }
 }
 
+class VideoElement extends Component {
+    render () {
+        return (
+            <video
+                autoPlay
+                muted={this.props.muted}
+                src={this.props.src}
+                className={this.props.className} />
+        );
+    }
+}
+
+function webinar(myPeerId, width, height, frameRate, isMuted) {
     let peer;
     function _connectToSkyWay(_myPeerId, _width, _height, _frameRate, _isMuted) {
         if (_myPeerId) {
