@@ -354,7 +354,7 @@ class LocalVideo extends Component {
         return (
             <div id="LocalVideo">
                 {title}
-                <VideoElement
+                <Video
                     muted={true}
                     src={src}
                     className={className} />
@@ -637,7 +637,7 @@ class Config extends Component {
     }
 }
 
-class VideoElement extends Component {
+class Video extends Component {
     render () {
         return (
             <video
