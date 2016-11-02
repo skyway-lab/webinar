@@ -16,6 +16,7 @@ class RemoteVideo extends Component {
                 if (!isSpeaker) {
                     return false;
                 }
+                clearTimeout(this.props.timerNoSpeaker);
                 question = (
                     <Question
                         localStream={this.props.localStream}

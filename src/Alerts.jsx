@@ -46,7 +46,7 @@ export default class Alerts extends Component {
                         Would you allow to use?
                     </p>
                     <p>
-                        You have to reload this page if you deny onece.
+                        Could you reload this page if you want to retry?
                     </p>
                     <p>
                         <Button bsStyle="danger" onClick={this.reload}>Reload</Button>
@@ -61,7 +61,7 @@ export default class Alerts extends Component {
                     <p>
                         An error has occured in SkyWay Room API.
                         This error sometimes happens because the API is still alpha version.
-                        Could you reload the page?
+                        Could you retry?
                     </p>
                     <p>
                         <Button bsStyle="danger" onClick={this.reload}>Reload</Button>
@@ -69,7 +69,20 @@ export default class Alerts extends Component {
                 </Alert>
             );
         }
-        if (notSupportedWebRTC || unstableSFU || gUM || roomPermission) {
+        let speakerDoesNotPresent;
+        if (this.props.alerts.includes(CONST.ALERT_KIND_NO_SPEAKER)) {
+            speakerDoesNotPresent = (
+                <Alert bsStyle="danger">
+                    <p>
+                        The speaker doesn't present now.
+                    </p>
+                    <p>
+                        <Button bsStyle="danger" onClick={this.reload}>Exit</Button>
+                    </p>
+                </Alert>
+            );
+        }
+        if (notSupportedWebRTC || unstableSFU || gUM || roomPermission || speakerDoesNotPresent) {
             return (
                 <div id="Alerts">
                     <Grid fluid={true}>
@@ -79,6 +92,7 @@ export default class Alerts extends Component {
                                 {unstableSFU}
                                 {gUM}
                                 {roomPermission}
+                                {speakerDoesNotPresent}
                             </Col>
                         </Row>
                     </Grid>
