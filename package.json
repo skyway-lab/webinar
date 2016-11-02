@@ -8,6 +8,7 @@
     "react-scripts": "0.4.1"
   },
   "dependencies": {
+    "fast-json-patch": "^1.1.1",
     "react": "^15.3.1",
     "react-bootstrap": "^0.30.5",
     "react-dom": "^15.3.1"

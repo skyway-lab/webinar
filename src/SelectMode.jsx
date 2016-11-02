@@ -9,7 +9,7 @@ class SelectMode extends Component {
     }
     onClick(event) {
         const mode = event.target.value;
-        this.props.update({ mode });
+        this.props.update([{ op: 'replace', path: '/mode', value: mode }]);
     }
     render() {
         return (

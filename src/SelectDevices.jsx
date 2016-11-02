@@ -35,16 +35,16 @@ class Config extends Component {
 
         const screenShare = this.props.screenShare || new SkyWay.ScreenShare({debug: true});
         if (!this.props.screenShare) {
-            this.props.update({ screenShare });
+            this.props.update([{ op: 'replace', path: '/screenShare', value: screenShare }]);
         }
 
         function successScreenShare (screenStream) {
             room.replaceStream(screenStream);
             room.send({streamKind: CONST.STREAM_KIND_SCREEN});
-            this.props.update({
-                localStream: screenStream,
-                screenStream: screenStream
-            });
+            this.props.update([
+                { op: 'replace', path: '/localStream', value: screenStream },
+                { op: 'replace', path: '/screenStream', value: screenStream }
+            ]);
         }
         successScreenShare = successScreenShare.bind(this);
 
@@ -57,7 +57,7 @@ class Config extends Component {
             console.log('stop screen share');
             room.replaceStream(cameraStream);
             room.send({streamKind: CONST.STREAM_KIND_CAMERA});
-            this.props.update({ localStream: cameraStream });
+            this.props.update([{ op: 'replace', path: '/localStream', value: cameraStream }]);
         }
         stopScreenShare = stopScreenShare.bind(this);
 

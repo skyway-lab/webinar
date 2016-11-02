@@ -8,11 +8,11 @@ class Question extends Component {
     }
     onClick(event) {
         const newStatus = event.target.value;
-        let state = {};
+        let patches = [];
         switch (newStatus) {
             case CONST.QA_STATUS_DO_NOTHING:
-                state.talkingStatus = CONST.QA_STATUS_DO_NOTHING;
-                state.talkingPeer = null;
+                patches.push({ op: 'replace', path: '/talkingStatus', value: CONST.QA_STATUS_DO_NOTHING });
+                patches.push({ op: 'replace', path: '/talkingPeer', value: null });
                 this.props.room.send({ talkingStatus: CONST.QA_STATUS_DO_NOTHING });
                 this.props.localStream.getAudioTracks().forEach(track => {
                     track.enabled = false;
@@ -22,7 +22,7 @@ class Question extends Component {
                 });
                 break;
             case CONST.QA_STATUS_WAITING:
-                state.talkingStatus = CONST.QA_STATUS_WAITING;
+                patches.push({ op: 'replace', path: '/talkingStatus', value: CONST.QA_STATUS_WAITING });
                 this.props.room.send({ talkingStatus: CONST.QA_STATUS_WAITING });
                 this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = true;
@@ -31,8 +31,8 @@ class Question extends Component {
             default:
                 break;
         }
-        if (Object.keys(state).length > 0) {
-            this.props.update(state);
+        if (patches.length > 0) {
+            this.props.update(patches);
         }
     }
     render() {
