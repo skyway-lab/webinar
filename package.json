@@ -13,8 +13,8 @@
     "react-dom": "^15.3.1"
   },
   "scripts": {
-    "start": "concurrently --kill-others 'node-sass -w --output-style expanded src/scss/App.scss src/App.css' 'react-scripts start'",
-    "build": "node-sass --output-style compressed src/scss/App.scss src/App.css && react-scripts build && rm -r docs/ && mv build/ docs/",
+    "start": "concurrently --kill-others 'node-sass -w src/scss/ --output-style expanded -o src/' 'react-scripts start'",
+    "build": "node-sass --output-style expanded -o src/ src/scss/ && react-scripts build && rm -r docs/ && mv build/ docs/",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
