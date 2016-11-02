@@ -14,20 +14,20 @@ class App extends Component {
             screenStream: null,
             screenShare: null,
             remoteStreams: [],
-            speakerStreamKind: 'camera',
+            speakerStreamKind: CONST.STREAM_KIND_CAMERA,
             waitingPeers: [],
             talkingPeer: null,
-            talkingStatus: 'none',
+            talkingStatus: CONST.QA_STATUS_DO_NOTHING,
             room: null,
             myPeerId: null
         };
         const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
         if (!isSupportedWebRTC) {
-            this.state.alerts.push('notSupportedWebRTC');
+            this.state.alerts.push(CONST.ALERT_KIND_NOT_SUPPORT_WEBRTC);
         }
         const isSupportedPlanB = window.webkitRTCPeerConnection;
         if (isSupportedWebRTC && !isSupportedPlanB) {
-            this.state.alerts.push('unstableSFU');
+            this.state.alerts.push(CONST.ALERT_KIND_UNSTABLE_SFU);
         }
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
@@ -37,9 +37,7 @@ class App extends Component {
             alerts.push(newState.alerts.add);
         }
         if (newState.alerts && newState.alerts.remove) {
-            alerts = alerts.filter(alert => {
-                return alert !== newState.alerts.remove;
-            });
+            alerts = alerts.filter(alert => alert !== newState.alerts.remove);
         }
         const mode = newState.mode ? newState.mode : this.state.mode;
         const localStream = newState.localStream ? newState.localStream : this.state.localStream;
@@ -51,9 +49,7 @@ class App extends Component {
             remoteStreams.push(newState.remoteStreams.add);
         }
         if (newState.remoteStreams && newState.remoteStreams.remove) {
-            remoteStreams = remoteStreams.filter(stream => {
-                return stream !== newState.remoteStreams.remove;
-            });
+            remoteStreams = remoteStreams.filter(stream => stream !== newState.remoteStreams.remove);
         }
         const speakerStreamKind = newState.speakerStreamKind ? newState.speakerStreamKind : this.state.speakerStreamKind;
         let waitingPeers = this.state.waitingPeers;
@@ -61,9 +57,7 @@ class App extends Component {
             waitingPeers.push(newState.waitingPeers.add);
         }
         if (newState.waitingPeers && newState.waitingPeers.remove) {
-            waitingPeers = waitingPeers.filter(remotePeerId => {
-                return remotePeerId !== newState.waitingPeers.remove;
-            });
+            waitingPeers = waitingPeers.filter(remotePeerId => remotePeerId !== newState.waitingPeers.remove);
         }
 
         // don't evaluate newState.talkingPeer because newStage.talkingPeer may change to null
@@ -129,14 +123,14 @@ class App extends Component {
 
 class Alerts extends Component {
     _handleAlertDismiss() {
-        this.props.update({ alerts: { remove: 'unstableSFU' } });
+        this.props.update({ alerts: { remove: CONST.ALERT_KIND_UNSTABLE_SFU } });
     }
     _reload() {
         location.reload();
     }
     render () {
         let notSupportedWebRTC;
-        if (this.props.alerts.includes('notSupportedWebRTC')) {
+        if (this.props.alerts.includes(CONST.ALERT_KIND_NOT_SUPPORT_WEBRTC)) {
             notSupportedWebRTC = (
                 <Alert bsStyle="danger">
                     SkyWay Webinar doesn't suport your browser because your browser doesn't support WebRTC.
@@ -145,7 +139,7 @@ class Alerts extends Component {
             );
         }
         let unstableSFU;
-        if (this.props.alerts.includes('unstableSFU')) {
+        if (this.props.alerts.includes(CONST.ALERT_KIND_UNSTABLE_SFU)) {
             unstableSFU = (
                 <Alert bsStyle="warning" onDismiss={this._handleAlertDismiss.bind(this)}>
                     Currently, Firefox are unstable in using SKyWay Webinar and we are fixing problems.
@@ -154,7 +148,7 @@ class Alerts extends Component {
             );
         }
         let gUM;
-        if (this.props.alerts.includes('gUM')) {
+        if (this.props.alerts.includes(CONST.ALERT_KIND_GUM)) {
             gUM = (
                 <Alert bsStyle="danger">
                     <p>
@@ -172,7 +166,7 @@ class Alerts extends Component {
             );
         }
         let roomPermission;
-        if (this.props.alerts.includes('roomPermission')) {
+        if (this.props.alerts.includes(CONST.ALERT_KIND_ROOM_PERMISSION)) {
             roomPermission = (
                 <Alert bsStyle="danger">
                     <p>
@@ -210,9 +204,8 @@ class Alerts extends Component {
 
 class SelectMode extends Component {
     _onClick (event) {
-        this.props.update({
-            mode: event.target.dataset.mode
-        });
+        const mode = event.target.value;
+        this.props.update({ mode });
     }
     render () {
         if (!this.props.mode) {
@@ -220,8 +213,8 @@ class SelectMode extends Component {
                 <div id="SelectMode">
                     <h1>SkyWay Webinar</h1>
                     <div className="button-container">
-                        <button data-mode="speaker" onClick={this._onClick.bind(this)}>Speaker</button>
-                        <button data-mode="audience" onClick={this._onClick.bind(this)}>Audience</button>
+                        <button value={CONST.ROLE_SPEAKER} onClick={this._onClick.bind(this)}>Speaker</button>
+                        <button value={CONST.ROLE_AUDIENCE} onClick={this._onClick.bind(this)}>Audience</button>
                     </div>
                 </div>
             );
@@ -237,7 +230,7 @@ class SpeakerUi extends Component {
         this.isWebinarStarted = false;
     }
     render () {
-        if (this.props.mode !== 'speaker') {
+        if (this.props.mode !== CONST.ROLE_SPEAKER) {
             return false;
         }
         if (!this.isWebinarStarted) {
@@ -256,7 +249,7 @@ class SpeakerUi extends Component {
                     mode={this.props.mode} />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
-                    opponent="audience"
+                    opponent={CONST.ROLE_AUDIENCE}
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
                     room={this.props.room}
@@ -272,21 +265,21 @@ class AudienceUi extends Component {
         this.isWebinarStarted = false;
     }
     render () {
-        if (this.props.mode !== 'audience') {
+        if (this.props.mode !== CONST.ROLE_AUDIENCE) {
             return false;
         }
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
             webinar.bind(this)(null, 160, 90, 1, true);
         }
-        if (this.props.talkingStatus === 'none') {
+        if (this.props.talkingStatus === CONST.QA_STATUS_DO_NOTHING) {
             return (
                 <div id="AudienceUi">
                     <RemoteVideos
                         localStream={this.props.localStream}
                         remoteStreams={this.props.remoteStreams}
                         speakerStreamKind={this.props.speakerStreamKind}
-                        opponent="speaker"
+                        opponent={CONST.ROLE_SPEAKER}
                         waitingPeers={this.props.waitingPeers}
                         talkingPeer={this.props.talkingPeer}
                         update={this.props.update}
@@ -295,7 +288,7 @@ class AudienceUi extends Component {
                     <RemoteVideos
                         remoteStreams={this.props.remoteStreams}
                         talkingPeer={this.props.talkingPeer}
-                        opponent="questioner" />
+                        opponent={CONST.ROLE_QUESTIONER} />
                 </div>
             );
         }
@@ -306,7 +299,7 @@ class AudienceUi extends Component {
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
                     speakerStreamKind={this.props.speakerStreamKind}
-                    opponent="speaker"
+                    opponent={CONST.ROLE_SPEAKER}
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
                     update={this.props.update}
@@ -318,7 +311,7 @@ class AudienceUi extends Component {
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     talkingPeer={this.props.talkingPeer}
-                    opponent="questioner" />
+                    opponent={CONST.ROLE_QUESTIONER} />
             </div>
         );
     }
@@ -332,7 +325,7 @@ class LocalVideo extends Component {
         let title;
         let className;
         let config;
-        if (this.props.mode === 'speaker') {
+        if (this.props.mode === CONST.ROLE_SPEAKER) {
             title = (
                 <h2><span>ON AIR</span></h2>
             );
@@ -369,14 +362,28 @@ class LocalVideo extends Component {
 
 class RemoteVideos extends Component {
     render () {
+        let className;
+        switch (this.props.opponent) {
+            case CONST.ROLE_SPEAKER:
+                className = 'speaker';
+                break;
+            case CONST.ROLE_AUDIENCE:
+                className = 'audience';
+                break;
+            case CONST.ROLE_QUESTIONER:
+                className = 'questioner';
+                break;
+            default:
+                break;
+        }
         let title;
-        if (this.props.opponent === 'audience') {
+        if (this.props.opponent === CONST.ROLE_AUDIENCE) {
             title = (
                 <h2><span>Audience</span></h2>
             );
         }
         return (
-            <div className={"remote-videos remote-videos-" + this.props.opponent}>
+            <div className={"remote-videos remote-videos-" + className}>
                 {title}
                 {this.props.remoteStreams.map(stream => (
                     <RemoteVideo
@@ -402,7 +409,7 @@ class RemoteVideo extends Component {
         let question;
         let answer;
         switch (this.props.opponent) {
-            case 'speaker':
+            case CONST.ROLE_SPEAKER:
                 let isSpeaker = stream.peerId === CONST.SPEAKER_PEER_ID;
                 if (!isSpeaker) {
                     return false;
@@ -415,7 +422,7 @@ class RemoteVideo extends Component {
                         room={this.props.room} />
                 );
                 break;
-            case 'audience':
+            case CONST.ROLE_AUDIENCE:
                 answer = (
                     <Answer
                         remotePeerId={stream.peerId}
@@ -425,7 +432,7 @@ class RemoteVideo extends Component {
                         update={this.props.update} />
                 );
                 break;
-            case 'questioner':
+            case CONST.ROLE_QUESTIONER:
                 let isQuestioner = stream.peerId === this.props.talkingPeer;
                 if (!isQuestioner) {
                     return false;
@@ -435,13 +442,24 @@ class RemoteVideo extends Component {
                 return false;
                 break;
         }
+        let className;
+        switch (this.props.speakerStreamKind) {
+            case CONST.STREAM_KIND_CAMERA:
+                className = 'camera';
+                break;
+            case CONST.STREAM_KIND_SCREEN:
+                className = 'screen';
+                break;
+            default:
+                break;
+        }
         return (
             <div className="remote-video">
                 {question}
                 {answer}
                 <Video
                     muted={false}
-                    className={this.props.speakerStreamKind}
+                    className={className}
                     src={url} />
             </div>
         );
@@ -450,13 +468,13 @@ class RemoteVideo extends Component {
 
 class Question extends Component {
     _onClick (event) {
-        const newStatus = event.target.dataset.newStatus;
+        const newStatus = event.target.value;
         let state = {};
         switch (newStatus) {
-            case 'none':
-                state.talkingStatus = 'none';
+            case CONST.QA_STATUS_DO_NOTHING:
+                state.talkingStatus = CONST.QA_STATUS_DO_NOTHING;
                 state.talkingPeer = null;
-                this.props.room.send({ talkingStatus: 'none' });
+                this.props.room.send({ talkingStatus: CONST.QA_STATUS_DO_NOTHING });
                 this.props.localStream.getAudioTracks().forEach(track => {
                     track.enabled = false;
                 });
@@ -464,9 +482,9 @@ class Question extends Component {
                     track.enabled = false;
                 });
                 break;
-            case 'waiting':
-                state.talkingStatus = 'waiting';
-                this.props.room.send({ talkingStatus: 'waiting' });
+            case CONST.QA_STATUS_WAITING:
+                state.talkingStatus = CONST.QA_STATUS_WAITING;
+                this.props.room.send({ talkingStatus: CONST.QA_STATUS_WAITING });
                 this.props.localStream.getVideoTracks().forEach(track => {
                     track.enabled = true;
                 });
@@ -479,43 +497,48 @@ class Question extends Component {
         }
     }
     render () {
+        let className;
+        let button;
+        let newStatus;
         switch (this.props.talkingStatus) {
-            case 'none':
-                return (
-                    <div className="button-wrapper button-wrapper-call">
-                        <button onClick={this._onClick.bind(this)} data-new-status="waiting">Question</button>
-                    </div>
-                );
-            case 'waiting':
-                return (
-                    <div className="button-wrapper button-wrapper-cancel">
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">Cancel</button>
-                    </div>
-                );
-            case 'talking':
-                return (
-                    <div className="button-wrapper button-wrapper-disconnect">
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
-                    </div>
-                );
+            case CONST.QA_STATUS_DO_NOTHING:
+                className = 'call';
+                button = 'Question';
+                newStatus = CONST.QA_STATUS_WAITING;
+                break;
+            case CONST.QA_STATUS_WAITING:
+                className = 'cancel';
+                button = 'Cancel';
+                newStatus = CONST.QA_STATUS_DO_NOTHING;
+                break;
+            case CONST.QA_STATUS_TALKING:
+                className = 'disconnect';
+                button = 'Finish';
+                newStatus = CONST.QA_STATUS_DO_NOTHING;
+                break;
             default:
                 return false;
         }
+        return (
+            <div className="button-wrapper button-wrapper-{className}">
+                <button onClick={this._onClick.bind(this)} value={newStatus}>{button}</button>
+            </div>
+        );
     }
 }
 
 class Answer extends Component {
     _onClick (event) {
         const remotePeerId = this.props.remotePeerId;
-        const newStatus = event.target.dataset.newStatus;
+        const newStatus = event.target.value;
         let talkingPeer = this.props.talkingPeer;
         let waitingPeers = this.props.waitingPeers;
         switch (newStatus) {
-            case 'none':
+            case CONST.QA_STATUS_DO_NOTHING:
                 talkingPeer = null;
                 waitingPeers = {remove: remotePeerId};
                 break;
-            case 'talking':
+            case CONST.QA_STATUS_TALKING:
                 if (talkingPeer) {
                     waitingPeers = {remove: talkingPeer};
                 }
@@ -538,7 +561,7 @@ class Answer extends Component {
                         Questioning
                     </div>
                     <div className="button-wrapper">
-                        <button onClick={this._onClick.bind(this)} data-new-status="none">Finish</button>
+                        <button onClick={this._onClick.bind(this)} value={CONST.QA_STATUS_DO_NOTHING}>Finish</button>
                     </div>
                 </div>
             );
@@ -549,7 +572,7 @@ class Answer extends Component {
                         Asking a question
                     </div>
                     <div className="button-wrapper">
-                        <button onClick={this._onClick.bind(this)} data-new-status="talking">Answer</button>
+                        <button onClick={this._onClick.bind(this)} value={CONST.QA_STATUS_TALKING}>Answer</button>
                     </div>
                 </div>
             );
@@ -567,7 +590,7 @@ class Answer extends Component {
 
 class Config extends Component {
     _onClick (event) {
-        if (event.currentTarget.id === 'camera') {
+        if (event.currentTarget.value === CONST.STREAM_KIND_CAMERA) {
             if (this.props.localStream === this.props.cameraStream) {
                 return;
             }
@@ -589,7 +612,7 @@ class Config extends Component {
         function successScreenShare (stream) {
             console.log('successed screenshare');
             this.props.room.replaceStream(stream);
-            this.props.room.send({streamKind: 'screen'});
+            this.props.room.send({streamKind: CONST.STREAM_KIND_SCREEN});
             this.props.update({
                 localStream: stream,
                 screenStream: stream
@@ -603,7 +626,7 @@ class Config extends Component {
         function stopScreenShare () {
             console.log('stop screen share');
             this.props.room.replaceStream(this.props.cameraStream);
-            this.props.room.send({streamKind: 'camera'});
+            this.props.room.send({streamKind: CONST.STREAM_KIND_CAMERA});
             this.props.update({ localStream: this.props.cameraStream });
         }
 
@@ -650,8 +673,8 @@ class Config extends Component {
             return (
                 <div id="Config">
                     <ButtonGroup>
-                        <Button id="camera" title="Camera" disabled><Glyphicon glyph="facetime-video" /></Button>
-                        <Button id="screen" title="Screen" onClick={this._onClick.bind(this)}><Glyphicon glyph="list-alt" /></Button>
+                        <Button title="Camera" value={CONST.STREAM_KIND_CAMERA} disabled><Glyphicon glyph="facetime-video" /></Button>
+                        <Button title="Screen" value={CONST.STREAM_KIND_SCREEN} onClick={this._onClick.bind(this)}><Glyphicon glyph="list-alt" /></Button>
                     </ButtonGroup>
                 </div>
             );
@@ -659,8 +682,8 @@ class Config extends Component {
         return (
             <div id="Config">
                 <ButtonGroup>
-                    <Button id="camera" title="Camera" onClick={this._onClick.bind(this)}><Glyphicon glyph="facetime-video" /></Button>
-                    <Button id="screen" title="Screen" disabled><Glyphicon glyph="list-alt" /></Button>
+                    <Button title="Camera" value={CONST.STREAM_KIND_CAMERA} onClick={this._onClick.bind(this)}><Glyphicon glyph="facetime-video" /></Button>
+                    <Button title="Screen" value={CONST.STREAM_KIND_SCREEN} disabled><Glyphicon glyph="list-alt" /></Button>
                 </ButtonGroup>
             </div>
         );
@@ -698,7 +721,7 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
         peer.on('error', err => {
             console.error(err.message);
             if (err.message === 'You do not have permission to send to this room') {
-                this.props.update({ alerts: { add: 'roomPermission' } });
+                this.props.update({ alerts: { add: CONST.ALERT_KIND_ROOM_PERMISSION } });
             }
         });
     }
@@ -711,7 +734,7 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
         };
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
         .then(stream => {
-            this.props.update({ alerts: { remove: 'gUM' } });
+            this.props.update({ alerts: { remove: CONST.ALERT_KIND_GUM } });
             clearTimeout(timer);
             if (isMuted) {
                 stream.getAudioTracks().forEach(track => {
@@ -728,21 +751,21 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
             _showRemoteVideo.bind(this)(stream);
         }).catch(err => {
             console.error(err);
-            this.props.update({ alerts: { add: 'gUM' } });
+            this.props.update({ alerts: { add: CONST.ALERT_KIND_GUM } });
         });
         const timer = setTimeout(() => {
-            this.props.update({ alerts: { add: 'gUM' } });
+            this.props.update({ alerts: { add: CONST.ALERT_KIND_GUM } });
         }, 2000);
     }
     function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
         const room = peer.joinRoom(roomName, { mode: 'sfu', stream: _stream });
         this.props.update({ room });
-        room.on('stream', (_stream) => {
+        room.on('stream', _stream => {
             console.log('room.on(\'stream\')');
             this.props.update({ remoteStreams: { add: _stream } });
         });
-        room.on('removeStream', (_stream) => {
+        room.on('removeStream', _stream => {
             console.log('room.on(\'removeStream\')');
             this.props.update({ remoteStreams: { remove: _stream } });
         });
@@ -752,7 +775,7 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
         room.on('peerJoin', id => {
             console.log('room.on(\'peerJoin\')');
             console.log(id);
-            if (this.props.mode === 'speaker') {
+            if (this.props.mode === CONST.ROLE_SPEAKER) {
                 room.send({ talkingPeer: this.props.talkingPeer });
             }
         });
@@ -763,15 +786,15 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
             console.log('room.on(\'data\'): ', msg);
             let state = {};
             switch (this.props.mode) {
-                case 'speaker':
-                    if (msg.data.talkingStatus === 'waiting') {
+                case CONST.ROLE_SPEAKER:
+                    if (msg.data.talkingStatus === CONST.QA_STATUS_WAITING) {
                         state.waitingPeers = {add: msg.src};
-                    } else if (msg.data.talkingStatus === 'none') {
+                    } else if (msg.data.talkingStatus === CONST.QA_STATUS_DO_NOTHING) {
                         state.waitingPeers = {remove: msg.src};
                         state.talkingPeer = undefined;
                     }
                     break;
-                case 'audience':
+                case CONST.ROLE_AUDIENCE:
                     if (msg.src !== CONST.SPEAKER_PEER_ID) {
                         return;
                     }
@@ -783,11 +806,11 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
                         break;
                     }
                     if (msg.data.hasOwnProperty('talkingPeer')) {
-                        const isTalking = (this.props.talkingStatus === 'talking');
+                        const isTalking = (this.props.talkingStatus === CONST.QA_STATUS_TALKING);
                         const willDisconnect = (msg.data.talkingPeer === null) || (msg.data.talkingPeer !== this.props.myPeerId);
                         const willTalk = (msg.data.talkingPeer === this.props.myPeerId);
                         if (isTalking && willDisconnect) {
-                            state.talkingStatus = 'none';
+                            state.talkingStatus = CONST.QA_STATUS_DO_NOTHING;
                             this.props.localStream.getAudioTracks().forEach(track => {
                                 track.enabled = false;
                             });
@@ -796,7 +819,7 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
                             });
                         }
                         if (!isTalking && willTalk) {
-                            state.talkingStatus = 'talking';
+                            state.talkingStatus = CONST.QA_STATUS_TALKING;
                             this.props.localStream.getAudioTracks().forEach(track => {
                                 track.enabled = true;
                             });
