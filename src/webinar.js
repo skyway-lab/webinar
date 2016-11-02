@@ -1,7 +1,8 @@
 import CONST from './Const';
 
-export default function webinar(myPeerId, width, height, frameRate, isMuted) {
+function webinar(myPeerId, width, height, frameRate, isMuted) {
     let peer;
+
     function _showLocalVideo(__width, __height, __frameRate, __isMuted) {
         const videoConstraints = {
             width: __width,
@@ -9,16 +10,16 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
             frameRate: __frameRate,
             facingMode: 'user'
         };
-        const timer = setTimeout(() => {
+        const timerAlertGUM = setTimeout(() => {
             this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
-        }, 2000);
+        }, CONST.TIMEOUT_MILLISECONDS_ALERT_GUM);
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
             .then(cameraStream => {
                 const index = this.props.alerts.indexOf(CONST.ALERT_KIND_GUM);
                 if (index !== -1) {
                     this.props.update([{ op: 'remove', path: '/alerts/' + index }]);
                 }
-                clearTimeout(timer);
+                clearTimeout(timerAlertGUM);
                 if (isMuted) {
                     cameraStream.getAudioTracks().forEach(track => {
                         track.enabled = false;
@@ -66,6 +67,12 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
         });
         room.on('peerLeave', id => {
             console.log('room.on(\'peerLeave\'): ', id);
+            const doesSpeakerExit
+                = id === CONST.SPEAKER_PEER_ID
+                && this.props.mode === CONST.ROLE_AUDIENCE;
+            if (doesSpeakerExit) {
+                this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);
+            }
         });
         room.on('data', msg => {
             console.log('room.on(\'data\'): ', msg);
@@ -159,3 +166,5 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
 
     _connectToSkyWay(myPeerId, width, height, frameRate, isMuted);
 }
+
+export default webinar;
