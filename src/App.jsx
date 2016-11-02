@@ -7,7 +7,7 @@ import CONST from './Const';
 import './App.css';
 
 class App extends Component {
-    constructor (props) {
+    constructor(props) {
         super(props);
         this.state = {
             alerts: [],
@@ -34,7 +34,7 @@ class App extends Component {
         }
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
-    update (newState) {
+    update(newState) {
         let alerts = this.state.alerts;
         if (newState.alerts && newState.alerts.add) {
             alerts.push(newState.alerts.add);
@@ -87,38 +87,62 @@ class App extends Component {
         this.setState(state);
     }
     render() {
+        switch (this.state.mode) {
+            case CONST.ROLE_SPEAKER:
+                return (
+                    <div className="App">
+                        <Alerts
+                            update={this.update}
+                            alerts={this.state.alerts}
+                        />
+                        <SpeakerUi
+                            roomName={CONST.ROOM_NAME}
+                            update={this.update}
+                            mode={this.state.mode}
+                            localStream={this.state.localStream}
+                            cameraStream={this.state.cameraStream}
+                            screenStream={this.state.screenStream}
+                            screenShare={this.state.screenShare}
+                            remoteStreams={this.state.remoteStreams}
+                            waitingPeers={this.state.waitingPeers}
+                            talkingPeer={this.state.talkingPeer}
+                            room={this.state.room}
+                        />
+                    </div>
+                );
+            case CONST.ROLE_AUDIENCE:
+                return (
+                    <div className="App">
+                        <Alerts
+                            update={this.update}
+                            alerts={this.state.alerts}
+                        />
+                        <AudienceUi
+                            roomName={CONST.ROOM_NAME}
+                            update={this.update}
+                            mode={this.state.mode}
+                            localStream={this.state.localStream}
+                            remoteStreams={this.state.remoteStreams}
+                            speakerStreamKind={this.state.speakerStreamKind}
+                            waitingPeers={this.state.waitingPeers}
+                            talkingPeer={this.state.talkingPeer}
+                            room={this.state.room}
+                            talkingStatus={this.state.talkingStatus}
+                            myPeerId={this.state.myPeerId}
+                        />
+                    </div>
+                );
+        }
         return (
             <div className="App">
                 <Alerts
                     update={this.update}
-                    alerts={this.state.alerts} />
+                    alerts={this.state.alerts}
+                />
                 <SelectMode
                     update={this.update}
-                    mode={this.state.mode} />
-                <SpeakerUi
-                    roomName={CONST.ROOM_NAME}
-                    update={this.update}
                     mode={this.state.mode}
-                    localStream={this.state.localStream}
-                    cameraStream={this.state.cameraStream}
-                    screenStream={this.state.screenStream}
-                    screenShare={this.state.screenShare}
-                    remoteStreams={this.state.remoteStreams}
-                    waitingPeers={this.state.waitingPeers}
-                    talkingPeer={this.state.talkingPeer}
-                    room={this.state.room} />
-                <AudienceUi
-                    roomName={CONST.ROOM_NAME}
-                    update={this.update}
-                    mode={this.state.mode}
-                    localStream={this.state.localStream}
-                    remoteStreams={this.state.remoteStreams}
-                    speakerStreamKind={this.state.speakerStreamKind}
-                    waitingPeers={this.state.waitingPeers}
-                    talkingPeer={this.state.talkingPeer}
-                    room={this.state.room}
-                    talkingStatus={this.state.talkingStatus}
-                    myPeerId={this.state.myPeerId} />
+                />
             </div>
         );
     }

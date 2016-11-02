@@ -5,7 +5,7 @@ import Answer from './Answer';
 import CONST from './Const';
 
 class RemoteVideo extends Component {
-    render () {
+    render() {
         const stream = this.props.stream;
         const url = URL.createObjectURL(stream);
         let question;
@@ -21,7 +21,8 @@ class RemoteVideo extends Component {
                         localStream={this.props.localStream}
                         update={this.props.update}
                         talkingStatus={this.props.talkingStatus}
-                        room={this.props.room} />
+                        room={this.props.room}
+                    />
                 );
                 break;
             case CONST.ROLE_AUDIENCE:
@@ -31,7 +32,8 @@ class RemoteVideo extends Component {
                         waitingPeers={this.props.waitingPeers}
                         talkingPeer={this.props.talkingPeer}
                         room={this.props.room}
-                        update={this.props.update} />
+                        update={this.props.update}
+                    />
                 );
                 break;
             case CONST.ROLE_QUESTIONER:
@@ -61,7 +63,8 @@ class RemoteVideo extends Component {
                 <Video
                     muted={false}
                     className={className}
-                    src={url} />
+                    src={url}
+                />
             </div>
         );
     }

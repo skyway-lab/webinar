@@ -3,7 +3,11 @@ import CONST from './Const';
 import './Answer.css';
 
 export default class Answer extends Component {
-    _onClick (event) {
+    constructor(props) {
+        super(props);
+        this.onClick = this.onClick.bind(this);
+    }
+    onClick(event) {
         const remotePeerId = this.props.remotePeerId;
         const newStatus = event.target.value;
         let talkingPeer = this.props.talkingPeer;
@@ -25,7 +29,7 @@ export default class Answer extends Component {
         this.props.room.send({ talkingPeer });
         this.props.update({ talkingPeer, waitingPeers });
     }
-    render () {
+    render() {
         const remotePeerId = this.props.remotePeerId;
         const waitingPeers = this.props.waitingPeers;
         const talkingPeer = this.props.talkingPeer;
@@ -53,7 +57,7 @@ export default class Answer extends Component {
         if (newStatus && label) {
             button = (
                 <div className="button-wrapper">
-                    <button onClick={this._onClick.bind(this)} value={newStatus}>{label}</button>
+                    <button onClick={this.onClick} value={newStatus}>{label}</button>
                 </div>
             );
         }

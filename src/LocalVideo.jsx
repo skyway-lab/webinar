@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 import Video from './Video';
-import Config from './Config';
+import SelectDevices from './SelectDevices';
 import CONST from './Const';
 
 class LocalVideo extends Component {
-    render () {
+    render() {
         if (!this.props.localStream) {
             return false;
         }
         let title;
         let className;
-        let config;
+        let selectDevices;
         if (this.props.mode === CONST.ROLE_SPEAKER) {
             title = (
                 <h2><span>ON AIR</span></h2>
@@ -22,14 +22,15 @@ class LocalVideo extends Component {
             } else {
                 className = 'camera';
             }
-            config = (
-                <Config
+            selectDevices = (
+                <SelectDevices
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
                     cameraStream={this.props.cameraStream}
                     screenStream={this.props.screenStream}
-                    screenShare={this.props.screenShare} />
+                    screenShare={this.props.screenShare}
+                />
             );
         }
         const url = URL.createObjectURL(this.props.localStream);
@@ -39,8 +40,9 @@ class LocalVideo extends Component {
                 <Video
                     muted={true}
                     src={url}
-                    className={className} />
-                {config}
+                    className={className}
+                />
+                {selectDevices}
             </div>
         );
     }

@@ -3,7 +3,7 @@ import RemoteVideo from './RemoteVideo';
 import CONST from './Const';
 
 class RemoteVideos extends Component {
-    render () {
+    render() {
         let className;
         switch (this.props.opponent) {
             case CONST.ROLE_SPEAKER:
@@ -37,7 +37,8 @@ class RemoteVideos extends Component {
                         talkingPeer={this.props.talkingPeer}
                         room={this.props.room}
                         speakerStreamKind={this.props.speakerStreamKind}
-                        stream={stream} />
+                        stream={stream}
+                    />
                 ))}
             </div>
         );

@@ -2,27 +2,6 @@ import CONST from './Const';
 
 export default function webinar(myPeerId, width, height, frameRate, isMuted) {
     let peer;
-    function _connectToSkyWay(_myPeerId, _width, _height, _frameRate, _isMuted) {
-        if (_myPeerId) {
-            peer = new Peer(_myPeerId, {
-                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
-            });
-        } else {
-            peer = new Peer({
-                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
-            });
-        }
-        peer.on('open', () => {
-            _showLocalVideo.bind(this)(_width, _height, _frameRate, _isMuted);
-            this.props.update({ myPeerId: peer.id });
-        });
-        peer.on('error', err => {
-            console.error(err.message);
-            if (err.message === 'You do not have permission to send to this room') {
-                this.props.update({ alerts: { add: CONST.ALERT_KIND_ROOM_PERMISSION } });
-            }
-        });
-    }
     function _showLocalVideo(__width, __height, __frameRate, __isMuted) {
         const videoConstraints = {
             width: __width,
@@ -55,6 +34,8 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
             this.props.update({ alerts: { add: CONST.ALERT_KIND_GUM } });
         });
     }
+    _showLocalVideo = _showLocalVideo.bind(this);
+
     function _showRemoteVideo(_stream) {
         const roomName = this.props.roomName;
         const room = peer.joinRoom(roomName, { mode: 'sfu', stream: _stream });
@@ -142,5 +123,30 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
          }, false);
          */
     }
-    _connectToSkyWay.bind(this)(myPeerId, width, height, frameRate, isMuted);
+    _showRemoteVideo = _showRemoteVideo.bind(this);
+
+    function _connectToSkyWay(_myPeerId, _width, _height, _frameRate, _isMuted) {
+        if (_myPeerId) {
+            peer = new Peer(_myPeerId, {
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
+            });
+        } else {
+            peer = new Peer({
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
+            });
+        }
+        peer.on('open', () => {
+            _showLocalVideo.bind(this)(_width, _height, _frameRate, _isMuted);
+            this.props.update({ myPeerId: peer.id });
+        });
+        peer.on('error', err => {
+            console.error(err.message);
+            if (err.message === 'You do not have permission to send to this room') {
+                this.props.update({ alerts: { add: CONST.ALERT_KIND_ROOM_PERMISSION } });
+            }
+        });
+    }
+    _connectToSkyWay = _connectToSkyWay.bind(this);
+
+    _connectToSkyWay(myPeerId, width, height, frameRate, isMuted);
 }

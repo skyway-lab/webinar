@@ -4,10 +4,14 @@ import CONST from './Const';
 import './Alerts.css';
 
 export default class Alerts extends Component {
-    _handleAlertDismiss() {
+    constructor(props) {
+        super(props);
+        this.dismissAlert = this.dismissAlert.bind(this);
+    }
+    dismissAlert() {
         this.props.update({ alerts: { remove: CONST.ALERT_KIND_UNSTABLE_SFU } });
     }
-    _reload() {
+    reload() {
         location.reload();
     }
     render () {
@@ -23,7 +27,7 @@ export default class Alerts extends Component {
         let unstableSFU;
         if (this.props.alerts.includes(CONST.ALERT_KIND_UNSTABLE_SFU)) {
             unstableSFU = (
-                <Alert bsStyle="warning" onDismiss={this._handleAlertDismiss.bind(this)}>
+                <Alert bsStyle="warning" onDismiss={this.dismissAlert}>
                     Currently, Firefox are unstable in using SKyWay Webinar and we are fixing problems.
                     So we recommend <a href="https://www.google.co.jp/chrome/">Google Chrome</a> now.
                 </Alert>
@@ -42,7 +46,7 @@ export default class Alerts extends Component {
                         You have to reload this page if you deny onece.
                     </p>
                     <p>
-                        <Button bsStyle="danger" onClick={this._reload}>Reload</Button>
+                        <Button bsStyle="danger" onClick={this.reload}>Reload</Button>
                     </p>
                 </Alert>
             );
@@ -57,7 +61,7 @@ export default class Alerts extends Component {
                         Could you reload the page?
                     </p>
                     <p>
-                        <Button bsStyle="danger" onClick={this._reload}>Reload</Button>
+                        <Button bsStyle="danger" onClick={this.reload}>Reload</Button>
                     </p>
                 </Alert>
             );

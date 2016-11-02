@@ -2,7 +2,11 @@ import React, { Component } from 'react';
 import CONST from './Const';
 
 class Question extends Component {
-    _onClick (event) {
+    constructor(props) {
+        super(props);
+        this.onClick = this.onClick.bind(this);
+    }
+    onClick(event) {
         const newStatus = event.target.value;
         let state = {};
         switch (newStatus) {
@@ -31,7 +35,7 @@ class Question extends Component {
             this.props.update(state);
         }
     }
-    render () {
+    render() {
         let className;
         let button;
         let newStatus;
@@ -56,7 +60,7 @@ class Question extends Component {
         }
         return (
             <div className={'button-wrapper button-wrapper-' + className}>
-                <button onClick={this._onClick.bind(this)} value={newStatus}>{button}</button>
+                <button onClick={this.onClick} value={newStatus}>{button}</button>
             </div>
         );
     }

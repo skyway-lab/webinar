@@ -6,14 +6,11 @@ import webinar from './webinar';
 import './SpeakerUi.css';
 
 class SpeakerUi extends Component {
-    constructor (props) {
+    constructor(props) {
         super(props);
         this.isWebinarStarted = false;
     }
-    render () {
-        if (this.props.mode !== CONST.ROLE_SPEAKER) {
-            return false;
-        }
+    render() {
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
             webinar.bind(this)(CONST.SPEAKER_PEER_ID, 1280, 720, 5, false);
@@ -27,14 +24,16 @@ class SpeakerUi extends Component {
                     cameraStream={this.props.cameraStream}
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare}
-                    mode={this.props.mode} />
+                    mode={this.props.mode}
+                />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}
                     opponent={CONST.ROLE_AUDIENCE}
                     waitingPeers={this.props.waitingPeers}
                     talkingPeer={this.props.talkingPeer}
                     room={this.props.room}
-                    update={this.props.update} />
+                    update={this.props.update}
+                />
             </div>
         );
     }

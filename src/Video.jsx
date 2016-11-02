@@ -1,13 +1,14 @@
 import React from 'react';
 
 class Video extends React.Component {
-    render () {
+    render() {
         return (
             <video
                 autoPlay
                 muted={this.props.muted}
                 src={this.props.src}
-                className={this.props.className} />
+                className={this.props.className}
+            />
         );
     }
 }
