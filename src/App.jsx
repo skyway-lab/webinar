@@ -4,6 +4,7 @@ import AudienceUi from './AudienceUi';
 import Alerts from './Alerts';
 import SelectMode from './SelectMode';
 import CONST from './Const';
+import jsonpatch from 'fast-json-patch';
 import './App.css';
 
 class App extends Component {
@@ -34,56 +35,9 @@ class App extends Component {
         }
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
     }
-    update(newState) {
-        let alerts = this.state.alerts;
-        if (newState.alerts && newState.alerts.add) {
-            alerts.push(newState.alerts.add);
-        }
-        if (newState.alerts && newState.alerts.remove) {
-            alerts = alerts.filter(alert => alert !== newState.alerts.remove);
-        }
-        const mode = newState.mode ? newState.mode : this.state.mode;
-        const localStream = newState.localStream ? newState.localStream : this.state.localStream;
-        const cameraStream = newState.cameraStream ? newState.cameraStream : this.state.cameraStream;
-        const screenStream = newState.screenStream ? newState.screenStream : this.state.screenStream;
-        const screenShare = newState.screenShare ? newState.screenShare : this.state.screenShare;
-        let remoteStreams = this.state.remoteStreams;
-        if (newState.remoteStreams && newState.remoteStreams.add) {
-            remoteStreams.push(newState.remoteStreams.add);
-        }
-        if (newState.remoteStreams && newState.remoteStreams.remove) {
-            remoteStreams = remoteStreams.filter(stream => stream !== newState.remoteStreams.remove);
-        }
-        const speakerStreamKind = newState.speakerStreamKind ? newState.speakerStreamKind : this.state.speakerStreamKind;
-        let waitingPeers = this.state.waitingPeers;
-        if (newState.waitingPeers && newState.waitingPeers.add) {
-            waitingPeers.push(newState.waitingPeers.add);
-        }
-        if (newState.waitingPeers && newState.waitingPeers.remove) {
-            waitingPeers = waitingPeers.filter(remotePeerId => remotePeerId !== newState.waitingPeers.remove);
-        }
-
-        // don't evaluate newState.talkingPeer because newStage.talkingPeer may change to null
-        const talkingPeer = newState.hasOwnProperty('talkingPeer') ? newState.talkingPeer : this.state.talkingPeer;
-
-        const talkingStatus = newState.talkingStatus ? newState.talkingStatus : this.state.talkingStatus;
-        const room = newState.room ? newState.room : this.state.room;
-        const myPeerId = newState.myPeerId ? newState.myPeerId : this.state.myPeerId;
-        const state = {
-            alerts,
-            mode,
-            localStream,
-            cameraStream,
-            screenStream,
-            screenShare,
-            remoteStreams,
-            speakerStreamKind,
-            waitingPeers,
-            talkingPeer,
-            talkingStatus,
-            room,
-            myPeerId
-        };
+    update(patches) {
+        let state = this.state;
+        jsonpatch.apply(state, patches);
         this.setState(state);
     }
     render() {
@@ -96,6 +50,7 @@ class App extends Component {
                             alerts={this.state.alerts}
                         />
                         <SpeakerUi
+                            alerts={this.state.alerts}
                             roomName={CONST.ROOM_NAME}
                             update={this.update}
                             mode={this.state.mode}
@@ -118,6 +73,7 @@ class App extends Component {
                             alerts={this.state.alerts}
                         />
                         <AudienceUi
+                            alerts={this.state.alerts}
                             roomName={CONST.ROOM_NAME}
                             update={this.update}
                             mode={this.state.mode}

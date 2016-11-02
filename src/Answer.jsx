@@ -12,22 +12,32 @@ export default class Answer extends Component {
         const newStatus = event.target.value;
         let talkingPeer = this.props.talkingPeer;
         let waitingPeers = this.props.waitingPeers;
+        let patches = [];
         switch (newStatus) {
             case CONST.QA_STATUS_DO_NOTHING:
-                talkingPeer = null;
-                waitingPeers = {remove: remotePeerId};
+                patches.push({ op: 'replace', path: '/talkingPeer', value: null });
+                const index = waitingPeers.indexOf(remotePeerId);
+                if (index !== -1) {
+                    patches.push({ op: 'remove', path: '/waitingPeers/' + index });
+                }
                 break;
             case CONST.QA_STATUS_TALKING:
                 if (talkingPeer) {
-                    waitingPeers = {remove: talkingPeer};
+                    const index = waitingPeers.indexOf(talkingPeer);
+                    if (index !== -1) {
+                        patches.push({ op: 'remove', path: '/waitingPeers/' + index });
+                    }
                 }
+                patches.push({ op: 'replace', path: '/talkingPeer', value: remotePeerId });
                 talkingPeer = remotePeerId;
                 break;
             default:
                 break;
         }
         this.props.room.send({ talkingPeer });
-        this.props.update({ talkingPeer, waitingPeers });
+        if (patches.length > 0) {
+            this.props.update(patches);
+        }
     }
     render() {
         const remotePeerId = this.props.remotePeerId;

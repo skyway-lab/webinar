@@ -10,43 +10,49 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
             facingMode: 'user'
         };
         const timer = setTimeout(() => {
-            this.props.update({ alerts: { add: CONST.ALERT_KIND_GUM } });
+            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
         }, 2000);
         navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
-            .then(stream => {
-                this.props.update({ alerts: { remove: CONST.ALERT_KIND_GUM } });
+            .then(cameraStream => {
+                const index = this.props.alerts.indexOf(CONST.ALERT_KIND_GUM);
+                if (index !== -1) {
+                    this.props.update([{ op: 'remove', path: '/alerts/' + index }]);
+                }
                 clearTimeout(timer);
                 if (isMuted) {
-                    stream.getAudioTracks().forEach(track => {
+                    cameraStream.getAudioTracks().forEach(track => {
                         track.enabled = false;
                     });
-                    stream.getVideoTracks().forEach(track => {
+                    cameraStream.getVideoTracks().forEach(track => {
                         track.enabled = false;
                     });
                 }
-                this.props.update({
-                    localStream: stream,
-                    cameraStream: stream
-                });
-                _showRemoteVideo.bind(this)(stream);
+                this.props.update([
+                    { op: 'replace', path: '/localStream', value: cameraStream },
+                    { op: 'replace', path: '/cameraStream', value: cameraStream }
+                ]);
+                _showRemoteVideo.bind(this)(cameraStream);
             }).catch(err => {
             console.error(err);
-            this.props.update({ alerts: { add: CONST.ALERT_KIND_GUM } });
+            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
         });
     }
     _showLocalVideo = _showLocalVideo.bind(this);
 
-    function _showRemoteVideo(_stream) {
+    function _showRemoteVideo(_localStream) {
         const roomName = this.props.roomName;
-        const room = peer.joinRoom(roomName, { mode: 'sfu', stream: _stream });
-        this.props.update({ room });
-        room.on('stream', _stream => {
+        const room = peer.joinRoom(roomName, { mode: 'sfu', stream: _localStream });
+        this.props.update([{ op: 'replace', path: '/room', value: room }]);
+        room.on('stream', _remoteStream => {
             console.log('room.on(\'stream\')');
-            this.props.update({ remoteStreams: { add: _stream } });
+            this.props.update([{ op: 'add', path: '/remoteStreams/-', value: _remoteStream }]);
         });
-        room.on('removeStream', _stream => {
+        room.on('removeStream', _remoteStream => {
             console.log('room.on(\'removeStream\')');
-            this.props.update({ remoteStreams: { remove: _stream } });
+            const index = this.props.remoteStreams.indexOf(_remoteStream);
+            if (index !== -1) {
+                this.props.update([{ op: 'remove', path: '/remoteStreams/' + index }]);
+            }
         });
         room.on('close', () => {
             console.log('room.on(\'close\')');
@@ -63,14 +69,17 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
         });
         room.on('data', msg => {
             console.log('room.on(\'data\'): ', msg);
-            let state = {};
+            let patches = [];
             switch (this.props.mode) {
                 case CONST.ROLE_SPEAKER:
                     if (msg.data.talkingStatus === CONST.QA_STATUS_WAITING) {
-                        state.waitingPeers = {add: msg.src};
+                        patches.push({ op: 'add', path: '/waitingPeers/-', value: msg.src });
                     } else if (msg.data.talkingStatus === CONST.QA_STATUS_DO_NOTHING) {
-                        state.waitingPeers = {remove: msg.src};
-                        state.talkingPeer = undefined;
+                        const index = this.props.waitingPeers.indexOf(msg.src);
+                        if (index !== -1) {
+                            patches.push({ op: 'remove', path: '/waitingPeers/' + index });
+                        }
+                        patches.push({ op: 'replace', path: '/talkingPeer', value: null });
                     }
                     break;
                 case CONST.ROLE_AUDIENCE:
@@ -81,7 +90,7 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
                         return;
                     }
                     if (msg.data.streamKind) {
-                        state.speakerStreamKind = msg.data.streamKind;
+                        patches.push({ op: 'replace', path: '/speakerStreamKind', value: msg.data.streamKind });
                         break;
                     }
                     if (msg.data.hasOwnProperty('talkingPeer')) {
@@ -89,7 +98,7 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
                         const willDisconnect = (msg.data.talkingPeer === null) || (msg.data.talkingPeer !== this.props.myPeerId);
                         const willTalk = (msg.data.talkingPeer === this.props.myPeerId);
                         if (isTalking && willDisconnect) {
-                            state.talkingStatus = CONST.QA_STATUS_DO_NOTHING;
+                            patches.push({ op: 'replace', path: '/talkingStatus', value: CONST.QA_STATUS_DO_NOTHING });
                             this.props.localStream.getAudioTracks().forEach(track => {
                                 track.enabled = false;
                             });
@@ -98,22 +107,22 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
                             });
                         }
                         if (!isTalking && willTalk) {
-                            state.talkingStatus = CONST.QA_STATUS_TALKING;
+                            patches.push({ op: 'replace', path: '/talkingStatus', value: CONST.QA_STATUS_TALKING });
                             this.props.localStream.getAudioTracks().forEach(track => {
                                 track.enabled = true;
                             });
                         }
-                        state.talkingPeer = msg.data.talkingPeer;
+                        patches.push({ op: 'replace', path: '/talkingPeer', value: msg.data.talkingPeer });
                     }
                     break;
                 default:
                     break;
             }
-            if (Object.keys(state).length > 0) {
-                this.props.update(state);
+            if (patches.length > 0) {
+                this.props.update(patches);
             }
         });
-        room.on('log', logs => {console.info(logs)});
+        room.on('log', logs => {console.log(logs)});
         room.getLog();
         // skyway.js seems to close beforehand.
         /*
@@ -137,12 +146,12 @@ export default function webinar(myPeerId, width, height, frameRate, isMuted) {
         }
         peer.on('open', () => {
             _showLocalVideo.bind(this)(_width, _height, _frameRate, _isMuted);
-            this.props.update({ myPeerId: peer.id });
+            this.props.update([{ op: 'replace', path: '/myPeerId', value: peer.id }]);
         });
         peer.on('error', err => {
             console.error(err.message);
             if (err.message === 'You do not have permission to send to this room') {
-                this.props.update({ alerts: { add: CONST.ALERT_KIND_ROOM_PERMISSION } });
+                this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_ROOM_PERMISSION }]);
             }
         });
     }

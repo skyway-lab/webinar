@@ -9,7 +9,10 @@ export default class Alerts extends Component {
         this.dismissAlert = this.dismissAlert.bind(this);
     }
     dismissAlert() {
-        this.props.update({ alerts: { remove: CONST.ALERT_KIND_UNSTABLE_SFU } });
+        const index = this.props.alerts.indexOf(CONST.ALERT_KIND_UNSTABLE_SFU);
+        if (index !== -1) {
+            this.props.update([{ op: 'remove', path: '/alerts/' + index, value: CONST.ALERT_KIND_UNSTABLE_SFU }]);
+        }
     }
     reload() {
         location.reload();
