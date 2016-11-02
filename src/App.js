@@ -554,37 +554,42 @@ class Answer extends Component {
         const remotePeerId = this.props.remotePeerId;
         const waitingPeers = this.props.waitingPeers;
         const talkingPeer = this.props.talkingPeer;
-        if (talkingPeer === remotePeerId) {
-            return (
-                <div className="answers answers-disconnect">
-                    <div className="answers-message">
-                        Questioning
-                    </div>
-                    <div className="button-wrapper">
-                        <button onClick={this._onClick.bind(this)} value={CONST.QA_STATUS_DO_NOTHING}>Finish</button>
-                    </div>
-                </div>
-            );
-        } else if (waitingPeers && waitingPeers.includes(remotePeerId)) {
-            return (
-                <div className="answers answers-accept">
-                    <div className="answers-message">
-                        Asking a question
-                    </div>
-                    <div className="button-wrapper">
-                        <button onClick={this._onClick.bind(this)} value={CONST.QA_STATUS_TALKING}>Answer</button>
-                    </div>
-                </div>
-            );
+        const isOpponentTalking = talkingPeer === remotePeerId;
+        const isOpponentWaiting = waitingPeers && waitingPeers.includes(remotePeerId);
+        let className;
+        let message;
+        let newStatus;
+        let label;
+        if (isOpponentTalking) {
+            className = 'disconnect';
+            message = 'Questioning';
+            newStatus = CONST.QA_STATUS_DO_NOTHING;
+            label = 'Finish';
+        } else if (isOpponentWaiting) {
+            className = 'accept';
+            message = 'Asking a question';
+            newStatus = CONST.QA_STATUS_TALKING;
+            label = 'Answer';
         } else {
-            return (
-                <div className="answers answers-videooff">
-                    <div className="answers-message">
-                        Just watching
-                    </div>
+            className = 'videooff';
+            message = 'Just watching';
+        }
+        let button;
+        if (newStatus && label) {
+            button = (
+                <div className="button-wrapper">
+                    <button onClick={this._onClick.bind(this)} value={newStatus}>{label}</button>
                 </div>
             );
         }
+        return (
+            <div className={'answers answers-' + className}>
+                <div className="answers-message">
+                    {message}
+                </div>
+                {button}
+            </div>
+        );
     }
 }
 
