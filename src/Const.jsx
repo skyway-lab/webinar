@@ -1,4 +1,4 @@
-export default {
+const CONST = {
     SPEAKER_PEER_ID: 'speaker',
     ROOM_NAME: 'skyway_webinar',
     STREAM_KIND_CAMERA: 'CAMERA',
@@ -14,3 +14,5 @@ export default {
     QA_STATUS_WAITING: 'WAITING',
     QA_STATUS_TALKING: 'TALKING'
 };
+
+export default CONST;

@@ -1,0 +1,41 @@
+#SelectMode {
+  margin: 0px;
+  padding: 0px;
+  height: 100vh;
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: flex;
+  text-align: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#SelectMode h1 {
+  font-size: 40px;
+  font-weight: 100;
+  letter-spacing: 0.1em;
+}
+
+#SelectMode button {
+  font-size: 24px;
+  width: 160px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  border: 1px solid #eee;
+  color: #eee;
+  background-color: transparent;
+  margin-right: 10px;
+  line-height: 40px;
+  font-weight: 100;
+  letter-spacing: 0.05em;
+}
+
+#SelectMode button:last-child {
+  margin-right: 0px;
+}
+
+#SelectMode button:focus {
+  outline: none;
+}
