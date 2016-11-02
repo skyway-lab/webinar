@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
+    "concurrently": "^3.1.0",
+    "node-sass": "^3.10.1",
     "react-scripts": "0.4.1"
   },
   "dependencies": {
@@ -11,9 +13,8 @@
     "react-dom": "^15.3.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build && rm -r docs/ && mv build/ docs/",
-    "test": "react-scripts test --env=jsdom",
+    "start": "concurrently --kill-others 'node-sass -w src/scss/ --output-style expanded -o src/' 'react-scripts start'",
+    "build": "node-sass --output-style expanded -o src/ src/scss/ && react-scripts build && rm -r docs/ && mv build/ docs/",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

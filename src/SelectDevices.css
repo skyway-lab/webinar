@@ -1,0 +1,11 @@
+#Config {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+
+#Config h2 {
+  display: none;
+}
