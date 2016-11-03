@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
 import SpeakerUi from './SpeakerUi';
 import AudienceUi from './AudienceUi';
 import Alerts from './Alerts';

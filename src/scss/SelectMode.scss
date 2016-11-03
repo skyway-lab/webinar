@@ -16,9 +16,16 @@
     letter-spacing: 0.1em;
   }
 
+  input {
+    font-size: 24px;
+    border: 1px solid #888;
+    color: #eee;
+    background-color: #444;
+    width: 100%;
+  }
+
   button {
     font-size: 24px;
-    width: 160px;
     -webkit-appearance: none;
     -moz-appearance: none;
     -ms-appearance: none;
@@ -26,13 +33,14 @@
     border: 1px solid #eee;
     color: #eee;
     background-color: transparent;
-    margin-right: 10px;
+    margin-right: 10%;
     line-height: 40px;
     font-weight: 100;
     letter-spacing: 0.05em;
+    width: 45%;
 
     &:last-child {
-      margin-right: 0px;
+      margin-right: 0;
     }
 
     &:focus {
