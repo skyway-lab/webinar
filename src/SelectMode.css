@@ -72,7 +72,7 @@
   margin-right: 0;
 }
 
-#SelectMode a:hover {
+#SelectMode a:hover, #SelectMode a:focus {
   text-decoration: none;
 }
 

@@ -7,13 +7,13 @@ import './SelectMode.css';
 class SelectMode extends Component {
     constructor(props) {
         super(props);
-        this.onClick = this.onClick.bind(this);
         this.onChange = this.onChange.bind(this);
     }
     onChange(event) {
         this.props.update([{ op: 'replace', path: '/roomName', value: event.target.value}]);
     }
     render() {
+        console.info('SelectMode', this.props.params);
         const regex = new RegExp('^[\\w\\-]{1,' + CONST.ROOM_NAME_MAX_LENGTH + '}$');
         const isRoomNameValid = regex.test(this.props.roomName);
         console.info(this.props.roomName);
@@ -42,8 +42,8 @@ class SelectMode extends Component {
                     </Row>
                     <Row>
                         <Col xs={12} sm={8} smOffset={2} md={6} mdOffset={3}>
-                            <button value={CONST.ROLE_SPEAKER} onClick={this.onClick}>Speaker</button>
-                            <button value={CONST.ROLE_AUDIENCE} onClick={this.onClick}>Audience</button>
+                            <Link to={`/${this.props.roomName}/speaker`} disabled={disabled}>Speaker</Link>
+                            <Link to={`/${this.props.roomName}`} disabled={disabled}>Audience</Link>
                         </Col>
                     </Row>
                 </Grid>
