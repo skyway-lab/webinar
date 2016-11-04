@@ -11,9 +11,11 @@ import './App.css';
 class App extends Component {
     constructor(props) {
         super(props);
+        const index = Math.floor(Math.random() * CONST.ROOM_NAME_WORDS.length);
         this.state = {
             alerts: [],
             mode: null,
+            roomName: CONST.ROOM_NAME_WORDS[index] + '-webinar',
             localStream: null,
             cameraStream: null,
             screenStream: null,

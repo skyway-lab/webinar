@@ -6,4 +6,5 @@ body, #root {
     color: #eee;
     font-family: "Helvetica Neue";
     font-weight: 100;
+    overflow: hidden;
 }

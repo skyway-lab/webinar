@@ -8,14 +8,18 @@ class SelectMode extends Component {
     constructor(props) {
         super(props);
         this.onClick = this.onClick.bind(this);
-    }
-    onClick(event) {
-        const mode = event.target.value;
-        this.props.update([{ op: 'replace', path: '/mode', value: mode }]);
+        this.onChange = this.onChange.bind(this);
     }
     onChange(event) {
+        this.props.update([{ op: 'replace', path: '/roomName', value: event.target.value}]);
     }
     render() {
+        const regex = new RegExp('^[\\w\\-]{1,' + CONST.ROOM_NAME_MAX_LENGTH + '}$');
+        const isRoomNameValid = regex.test(this.props.roomName);
+        console.info(this.props.roomName);
+        console.info(isRoomNameValid);
+        const className = isRoomNameValid ? null : 'warn';
+        const disabled = !isRoomNameValid;
         return (
             <div id="SelectMode">
                 <Grid>
@@ -26,7 +30,14 @@ class SelectMode extends Component {
                     </Row>
                     <Row>
                         <Col xs={12} sm={8} smOffset={2} md={6} mdOffset={3}>
-                            <input type="text" onChange={this.onChange} placeholder="Input Room Name" />
+                            <div className={'input-wrapper ' + className}>
+                                <input
+                                    type="text"
+                                    onChange={this.onChange}
+                                    placeholder="Webinar's name"
+                                    value={this.props.roomName}
+                                />
+                            </div>
                         </Col>
                     </Row>
                     <Row>
