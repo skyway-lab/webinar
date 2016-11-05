@@ -160,6 +160,9 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
             if (err.message === 'You do not have permission to send to this room') {
                 this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_ROOM_PERMISSION }]);
             }
+            if (err.message === 'PeerId "speaker" is already in use. Choose a different peerId and try again.') {
+                this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_PEERID_IN_USE }]);
+            }
         });
     }
     _connectToSkyWay = _connectToSkyWay.bind(this);
