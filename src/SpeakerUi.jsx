@@ -16,7 +16,6 @@ class SpeakerUi extends Component {
         ]);
     }
     render() {
-        console.info(this.props.params);
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
             webinar.bind(this)(CONST.SPEAKER_PEER_ID, 1280, 720, 5, false);

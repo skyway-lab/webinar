@@ -16,7 +16,6 @@ class AudienceUi extends Component {
         ]);
     }
     render() {
-        console.info(this.props.params);
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
             webinar.bind(this)(null, 160, 90, 1, true);

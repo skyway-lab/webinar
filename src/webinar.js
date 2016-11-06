@@ -60,7 +60,6 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
         });
         room.on('peerJoin', id => {
             console.log('room.on(\'peerJoin\')');
-            console.log(id);
             if (this.props.mode === CONST.ROLE_SPEAKER) {
                 room.send({ talkingPeer: this.props.talkingPeer });
             }
