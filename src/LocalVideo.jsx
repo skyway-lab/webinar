@@ -30,6 +30,7 @@ class LocalVideo extends Component {
                     cameraStream={this.props.cameraStream}
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare}
+                    devices={this.props.devices}
                 />
             );
         }

@@ -3,6 +3,11 @@ import CONST from './Const';
 function webinar(myPeerId, width, height, frameRate, isMuted) {
     let peer;
 
+    function _gotDevices(deviceInfos) {
+        this.props.update([{ op: 'replace', path: '/devices', value: deviceInfos }]);
+    }
+    _gotDevices = _gotDevices.bind(this);
+
     function _showLocalVideo(__width, __height, __frameRate, __isMuted) {
         const videoConstraints = {
             width: __width,
@@ -167,6 +172,9 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
     _connectToSkyWay = _connectToSkyWay.bind(this);
 
     _connectToSkyWay(myPeerId, width, height, frameRate, isMuted);
+    navigator.mediaDevices.enumerateDevices().then(_gotDevices).catch(err => {
+        console.error(err);
+    });
 }
 
 export default webinar;

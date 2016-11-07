@@ -25,7 +25,8 @@ class App extends Component {
             talkingPeer: null,
             talkingStatus: CONST.QA_STATUS_DO_NOTHING,
             room: null,
-            myPeerId: null
+            myPeerId: null,
+            devices: []
         };
         const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
         if (!isSupportedWebRTC) {
@@ -64,6 +65,7 @@ class App extends Component {
                     talkingStatus: this.state.talkingStatus,
                     room: this.state.room,
                     myPeerId: this.state.myPeerId,
+                    devices: this.state.devices,
                     update: this.update
                 })}
             </div>

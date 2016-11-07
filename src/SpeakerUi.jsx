@@ -30,6 +30,7 @@ class SpeakerUi extends Component {
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare}
                     mode={this.props.mode}
+                    devices={this.props.devices}
                 />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}

@@ -1,11 +1,19 @@
 #Config {
   position: absolute;
   bottom: 10px;
-  left: 0;
   width: 100%;
-  text-align: center;
 }
 
-#Config h2 {
-  display: none;
+#Config .btn-toolbar {
+  position: relative;
+  left: 50%;
+  float: left;
+}
+
+#Config .btn-toolbar > .btn-group {
+  left: -50%;
+}
+
+#Config .btn-toolbar > .btn-group:first-of-type {
+  margin-left: 10px;
 }

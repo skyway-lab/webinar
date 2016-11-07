@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, Glyphicon } from 'react-bootstrap';
+import { Button, ButtonGroup, ButtonToolbar, Glyphicon, DropdownButton, Dropdown, MenuItem } from 'react-bootstrap';
 import CONST from './Const';
 import './SelectDevices.css';
+import './CustomIcons.css';
 
 class Config extends Component {
     constructor(props) {
@@ -104,22 +105,56 @@ class Config extends Component {
         const localStream = this.props.localStream;
         const cameraStream = this.props.cameraStream;
         const screenStream = this.props.screenStream;
+        function menuItemFunc(kind) {
+            return function menuItem(deviceInfo) {
+                if (deviceInfo.kind !== kind) {
+                    return false;
+                }
+                return (
+                    <MenuItem
+                        value={deviceInfo.deviceId}
+                        onClick={this.onClick}
+                    >{deviceInfo.label}</MenuItem>
+                );
+            }
+        }
         return (
             <div id="Config">
-                <ButtonGroup>
-                    <Button
-                        title="Camera"
-                        value={CONST.STREAM_KIND_CAMERA}
-                        onClick={this.onClick}
-                        disabled={!localStream || localStream === cameraStream}
-                    ><Glyphicon glyph="facetime-video" /></Button>
-                    <Button
-                        title="Screen"
-                        value={CONST.STREAM_KIND_SCREEN}
-                        onClick={this.onClick}
-                        disabled={localStream === screenStream}
-                    ><Glyphicon glyph="list-alt" /></Button>
-                </ButtonGroup>
+                <ButtonToolbar>
+                    <ButtonGroup>
+                        <Dropdown>
+                            <Dropdown.Toggle>
+                                <Glyphicon glyph="facetime-video" />
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu>
+                                {this.props.devices.map(menuItemFunc('videoinput').bind(this))}
+                            </Dropdown.Menu>
+                        </Dropdown>
+                        <Button
+                            title="Screen"
+                            value={CONST.STREAM_KIND_SCREEN}
+                            onClick={this.onClick}
+                            disabled={localStream === screenStream}
+                        ><span className="icon icon-display" />
+                        </Button>
+                    </ButtonGroup>
+                    <Dropdown>
+                        <Dropdown.Toggle>
+                            <span className="icon icon-microphone" />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            {this.props.devices.map(menuItemFunc('audioinput').bind(this))}
+                        </Dropdown.Menu>
+                    </Dropdown>
+                    <Dropdown>
+                        <Dropdown.Toggle>
+                            <Glyphicon glyph="volume-up" />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            {this.props.devices.map(menuItemFunc('audiooutput').bind(this))}
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </ButtonToolbar>
             </div>
         );
     }
