@@ -87,11 +87,11 @@
   border-right: 1px solid #444;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video:first-child {
+#SpeakerUi .remote-videos-audience .remote-video:first-of-type {
   border-left: 0;
 }
 
-#SpeakerUi .remote-videos-audience .remote-video:last-child {
+#SpeakerUi .remote-videos-audience .remote-video:last-of-type {
   border-right: 0;
 }
 

@@ -54,7 +54,6 @@ class Config extends Component {
         failScreenShare = failScreenShare.bind(this);
 
         function stopScreenShare () {
-            console.log('stop screen share');
             room.replaceStream(cameraStream);
             room.send({streamKind: CONST.STREAM_KIND_CAMERA});
             this.props.update([{ op: 'replace', path: '/localStream', value: cameraStream }]);

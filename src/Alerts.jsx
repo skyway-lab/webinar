@@ -17,6 +17,9 @@ export default class Alerts extends Component {
     reload() {
         location.reload();
     }
+    goHome() {
+        location.assign('/');
+    }
     render () {
         let notSupportedWebRTC;
         if (this.props.alerts.includes(CONST.ALERT_KIND_NOT_SUPPORT_WEBRTC)) {
@@ -77,30 +80,42 @@ export default class Alerts extends Component {
                         The speaker doesn't present now.
                     </p>
                     <p>
-                        <Button bsStyle="danger" onClick={this.reload}>Exit</Button>
+                        <Button bsStyle="danger" onClick={this.goHome}>Exit</Button>
                     </p>
                 </Alert>
             );
         }
-        if (notSupportedWebRTC || unstableSFU || gUM || roomPermission || speakerDoesNotPresent) {
-            return (
-                <div id="Alerts">
-                    <Grid fluid={true}>
-                        <Row>
-                            <Col xs={12} sm={5} smOffset={7} md={4} mdOffset={8} lg={3} lgOffset={9}>
-                                {notSupportedWebRTC}
-                                {unstableSFU}
-                                {gUM}
-                                {roomPermission}
-                                {speakerDoesNotPresent}
-                            </Col>
-                        </Row>
-                    </Grid>
-                </div>
+        let peerIdInUse;
+        if (this.props.alerts.includes(CONST.ALERT_KIND_PEERID_IN_USE)) {
+            peerIdInUse = (
+                <Alert bsStyle="danger">
+                    <p>
+                        This Webinar name is already in use. Would you use other name?
+                    </p>
+                    <p>
+                        <Button bsStyle="danger" onClick={this.goHome}>Exit</Button>
+                    </p>
+                </Alert>
             );
         }
+        if (!notSupportedWebRTC && !unstableSFU && !gUM && !roomPermission && !speakerDoesNotPresent && !peerIdInUse) {
+            return false;
+        }
         return (
-            <div></div>
+            <div id="Alerts">
+                <Grid fluid={true}>
+                    <Row>
+                        <Col xs={12} sm={5} smOffset={7} md={4} mdOffset={8} lg={3} lgOffset={9}>
+                            {notSupportedWebRTC}
+                            {unstableSFU}
+                            {gUM}
+                            {roomPermission}
+                            {speakerDoesNotPresent}
+                            {peerIdInUse}
+                        </Col>
+                    </Row>
+                </Grid>
+            </div>
         );
     }
 }

@@ -15,6 +15,7 @@ export default class Answer extends Component {
         let patches = [];
         switch (newStatus) {
             case CONST.QA_STATUS_DO_NOTHING:
+                talkingPeer = null;
                 patches.push({ op: 'replace', path: '/talkingPeer', value: null });
                 const index = waitingPeers.indexOf(remotePeerId);
                 if (index !== -1) {

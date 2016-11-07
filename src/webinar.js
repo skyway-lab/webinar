@@ -60,7 +60,6 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
         });
         room.on('peerJoin', id => {
             console.log('room.on(\'peerJoin\')');
-            console.log(id);
             if (this.props.mode === CONST.ROLE_SPEAKER) {
                 room.send({ talkingPeer: this.props.talkingPeer });
             }
@@ -159,6 +158,9 @@ function webinar(myPeerId, width, height, frameRate, isMuted) {
             console.error(err.message);
             if (err.message === 'You do not have permission to send to this room') {
                 this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_ROOM_PERMISSION }]);
+            }
+            if (err.message === 'PeerId "speaker" is already in use. Choose a different peerId and try again.') {
+                this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_PEERID_IN_USE }]);
             }
         });
     }

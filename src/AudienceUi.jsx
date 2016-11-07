@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
 import RemoteVideos from './RemoteVideos';
 import LocalVideo from './LocalVideo';
 import CONST from './Const';
@@ -9,6 +10,10 @@ class AudienceUi extends Component {
     constructor(props) {
         super(props);
         this.isWebinarStarted = false;
+        this.props.update([
+            { op: 'replace', path: '/mode', value: CONST.ROLE_AUDIENCE },
+            { op: 'replace', path: '/roomName', value: this.props.params.roomName}
+        ]);
     }
     render() {
         if (!this.isWebinarStarted) {

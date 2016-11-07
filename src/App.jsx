@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
 import SpeakerUi from './SpeakerUi';
 import AudienceUi from './AudienceUi';
 import Alerts from './Alerts';
@@ -13,6 +14,7 @@ class App extends Component {
         this.state = {
             alerts: [],
             mode: null,
+            roomName: '',
             localStream: null,
             cameraStream: null,
             screenStream: null,
@@ -41,64 +43,29 @@ class App extends Component {
         this.setState(state);
     }
     render() {
-        switch (this.state.mode) {
-            case CONST.ROLE_SPEAKER:
-                return (
-                    <div className="App">
-                        <Alerts
-                            update={this.update}
-                            alerts={this.state.alerts}
-                        />
-                        <SpeakerUi
-                            alerts={this.state.alerts}
-                            roomName={CONST.ROOM_NAME}
-                            update={this.update}
-                            mode={this.state.mode}
-                            localStream={this.state.localStream}
-                            cameraStream={this.state.cameraStream}
-                            screenStream={this.state.screenStream}
-                            screenShare={this.state.screenShare}
-                            remoteStreams={this.state.remoteStreams}
-                            waitingPeers={this.state.waitingPeers}
-                            talkingPeer={this.state.talkingPeer}
-                            room={this.state.room}
-                        />
-                    </div>
-                );
-            case CONST.ROLE_AUDIENCE:
-                return (
-                    <div className="App">
-                        <Alerts
-                            update={this.update}
-                            alerts={this.state.alerts}
-                        />
-                        <AudienceUi
-                            alerts={this.state.alerts}
-                            roomName={CONST.ROOM_NAME}
-                            update={this.update}
-                            mode={this.state.mode}
-                            localStream={this.state.localStream}
-                            remoteStreams={this.state.remoteStreams}
-                            speakerStreamKind={this.state.speakerStreamKind}
-                            waitingPeers={this.state.waitingPeers}
-                            talkingPeer={this.state.talkingPeer}
-                            room={this.state.room}
-                            talkingStatus={this.state.talkingStatus}
-                            myPeerId={this.state.myPeerId}
-                        />
-                    </div>
-                );
-        }
         return (
             <div className="App">
                 <Alerts
                     update={this.update}
                     alerts={this.state.alerts}
                 />
-                <SelectMode
-                    update={this.update}
-                    mode={this.state.mode}
-                />
+                {React.cloneElement(this.props.children, {
+                    alerts: this.state.alerts,
+                    mode: this.state.mode,
+                    roomName: this.state.roomName,
+                    localStream: this.state.localStream,
+                    cameraStream: this.state.cameraStream,
+                    screenStream: this.state.screenStream,
+                    screenShare: this.state.screenShare,
+                    remoteStreams: this.state.remoteStreams,
+                    speakerStreamKind: this.state.speakerStreamKind,
+                    waitingPeers: this.state.waitingPeers,
+                    talkingPeer: this.state.talkingPeer,
+                    talkingStatus: this.state.talkingStatus,
+                    room: this.state.room,
+                    myPeerId: this.state.myPeerId,
+                    update: this.update
+                })}
             </div>
         );
     }
