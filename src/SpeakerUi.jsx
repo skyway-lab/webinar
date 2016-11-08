@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import RemoteVideos from './RemoteVideos';
 import LocalVideo from './LocalVideo';
 import CONST from './Const';
-import webinar from './webinar';
+import getCameraStream from './getCameraStream';
+import connectToSkyWay from './connectToSkyWay';
+import joinRoom from './joinRoom';
 import getDevices from './getDevices';
 import './SpeakerUi.css';
 
@@ -14,10 +16,30 @@ class SpeakerUi extends Component {
             { op: 'replace', path: '/mode', value: CONST.ROLE_SPEAKER },
             { op: 'replace', path: '/roomName', value: this.props.params.roomName}
         ]);
+
+        function _webinar(myPeerId, width, height, frameRate, isMuted) {
+            getDevices.bind(this)();
+            const _joinRoom = joinRoom.bind(this);
+            connectToSkyWay.bind(this)(myPeerId, () => {
+                const isFinishedGetCameraStream = !!(this.props.localStream);
+                if (!isFinishedGetCameraStream) {
+                    return;
+                }
+                _joinRoom();
+            });
+            getCameraStream.bind(this)(width, height, frameRate, isMuted, () => {
+                const isFinishedConnectToSkyWay = !!(this.props.peer);
+                if (!isFinishedConnectToSkyWay) {
+                    return;
+                }
+                getDevices.bind(this)();
+                _joinRoom();
+            });
+        }
+
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)(CONST.SPEAKER_PEER_ID, CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false);
-            getDevices.bind(this)();
+            _webinar.bind(this)(CONST.SPEAKER_PEER_ID, CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false);
         }
     }
     render() {
