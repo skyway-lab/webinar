@@ -24,6 +24,7 @@ class LocalVideo extends Component {
             }
             selectDevices = (
                 <SelectDevices
+                    alerts={this.props.alerts}
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
@@ -31,6 +32,9 @@ class LocalVideo extends Component {
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare}
                     devices={this.props.devices}
+                    cameraId={this.props.cameraId}
+                    microphoneId={this.props.microphoneId}
+                    speakerId={this.props.speakerId}
                 />
             );
         }

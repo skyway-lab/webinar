@@ -14,12 +14,12 @@ class AudienceUi extends Component {
             { op: 'replace', path: '/mode', value: CONST.ROLE_AUDIENCE },
             { op: 'replace', path: '/roomName', value: this.props.params.roomName}
         ]);
-    }
-    render() {
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)(null, 160, 90, 1, true);
+            webinar.bind(this)(null, CONST.AUDIENCE_CAMERA_WIDTH, CONST.AUDIENCE_CAMERA_HEIGHT, CONST.AUDIENCE_CAMERA_FRAME_RATE, true);
         }
+    }
+    render() {
         let localVideo;
         let questionerVideo;
         if (this.props.talkingStatus !== CONST.QA_STATUS_DO_NOTHING) {

@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
 import RemoteVideos from './RemoteVideos';
 import LocalVideo from './LocalVideo';
 import CONST from './Const';
 import webinar from './webinar';
+import getDevices from './getDevices';
 import './SpeakerUi.css';
 
 class SpeakerUi extends Component {
@@ -14,15 +14,17 @@ class SpeakerUi extends Component {
             { op: 'replace', path: '/mode', value: CONST.ROLE_SPEAKER },
             { op: 'replace', path: '/roomName', value: this.props.params.roomName}
         ]);
-    }
-    render() {
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)(CONST.SPEAKER_PEER_ID, 1280, 720, 5, false);
+            webinar.bind(this)(CONST.SPEAKER_PEER_ID, CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false);
+            getDevices.bind(this)();
         }
+    }
+    render() {
         return (
             <div id="SpeakerUi">
                 <LocalVideo
+                    alerts={this.props.alerts}
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
@@ -31,6 +33,9 @@ class SpeakerUi extends Component {
                     screenShare={this.props.screenShare}
                     mode={this.props.mode}
                     devices={this.props.devices}
+                    cameraId={this.props.cameraId}
+                    microphoneId={this.props.microphoneId}
+                    speakerId={this.props.speakerId}
                 />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}

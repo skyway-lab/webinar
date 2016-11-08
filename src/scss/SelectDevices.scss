@@ -1,19 +1,11 @@
-#Config {
+#SelectDevices {
   position: absolute;
   bottom: 10px;
+  left: 0;
   width: 100%;
+  text-align: center;
 
-  .btn-toolbar {
-    position: relative;
-    left: 50%;
-    float: left;
-
-    > .btn-group {
-      left: -50%;
-
-      &:first-of-type {
-        margin-left: 10px;
-      }
-    }
+  h2 {
+    display: none;
   }
 }

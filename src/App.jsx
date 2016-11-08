@@ -15,6 +15,8 @@ class App extends Component {
             alerts: [],
             mode: null,
             roomName: '',
+            peer: null,
+            room: null,
             localStream: null,
             cameraStream: null,
             screenStream: null,
@@ -24,9 +26,10 @@ class App extends Component {
             waitingPeers: [],
             talkingPeer: null,
             talkingStatus: CONST.QA_STATUS_DO_NOTHING,
-            room: null,
-            myPeerId: null,
-            devices: []
+            devices: [],
+            cameraId: null,
+            microphoneId: null,
+            speakerId: null
         };
         const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
         if (!isSupportedWebRTC) {
@@ -42,6 +45,10 @@ class App extends Component {
         let state = this.state;
         jsonpatch.apply(state, patches);
         this.setState(state);
+        console.info('cameraId', state.cameraId);
+        if (state.localStream) {
+            console.info('localStream', state.localStream.id);
+        }
     }
     render() {
         return (
@@ -54,6 +61,8 @@ class App extends Component {
                     alerts: this.state.alerts,
                     mode: this.state.mode,
                     roomName: this.state.roomName,
+                    peer: this.state.peer,
+                    room: this.state.room,
                     localStream: this.state.localStream,
                     cameraStream: this.state.cameraStream,
                     screenStream: this.state.screenStream,
@@ -63,9 +72,10 @@ class App extends Component {
                     waitingPeers: this.state.waitingPeers,
                     talkingPeer: this.state.talkingPeer,
                     talkingStatus: this.state.talkingStatus,
-                    room: this.state.room,
-                    myPeerId: this.state.myPeerId,
                     devices: this.state.devices,
+                    cameraId: this.state.cameraId,
+                    microphoneId: this.state.microphoneId,
+                    speakerId: this.state.speakerId,
                     update: this.update
                 })}
             </div>

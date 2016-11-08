@@ -19,6 +19,7 @@ class SelectMode extends Component {
         const isRoomNameValid = regex.test(this.props.roomName);
         const className = isRoomNameValid ? null : 'warn';
         const disabled = !isRoomNameValid;
+        console.info(isRoomNameValid);
         return (
             <div id="SelectMode">
                 <Grid>
