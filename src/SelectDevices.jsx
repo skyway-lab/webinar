@@ -30,13 +30,6 @@ class SelectDevices extends Component {
                     return;
                 }
 
-                if (isCameraUsed) {
-                    // camera -> camera
-                    cameraStream.getTracks().forEach(track => {
-                        track.stop();
-                    });
-                }
-
                 if (isScreenUsed) {
                     // screen -> camera
                     localStream.getTracks().forEach(track => {
@@ -47,7 +40,7 @@ class SelectDevices extends Component {
                 // screen -> camera
                 // camera -> camera
                 this.props.update([{ op: 'replace', path: '/cameraId', value: id }]);
-                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, () => {
+                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, (cameraStream) => {
                     this.props.room.replaceStream(cameraStream);
                 }, id, undefined);
 

@@ -38,7 +38,7 @@ function getCameraStream(width, height, frameRate, isMuted, callback, cameraId =
                 { op: 'replace', path: '/cameraStream', value: cameraStream }
             ]);
             if (callback) {
-                callback();
+                callback(cameraStream);
             }
         }).catch(err => {
         console.error(err);
