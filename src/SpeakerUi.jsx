@@ -40,7 +40,7 @@ class SpeakerUi extends Component {
 
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            _webinar.bind(this)(CONST.SPEAKER_PEER_ID, CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false);
+            _webinar.bind(this)(this.props.roomName + '-' + CONST.SPEAKER_PEER_ID, CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false);
         }
     }
     render() {
