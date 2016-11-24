@@ -32,9 +32,9 @@ class LocalVideo extends Component {
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare}
                     devices={this.props.devices}
-                    cameraId={this.props.cameraId}
-                    microphoneId={this.props.microphoneId}
-                    speakerId={this.props.speakerId}
+                    videoInId={this.props.videoInId}
+                    audioInId={this.props.audioInId}
+                    audioOutId={this.props.audioOutId}
                 />
             );
         }

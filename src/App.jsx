@@ -27,9 +27,9 @@ class App extends Component {
             talkingPeer: null,
             talkingStatus: CONST.QA_STATUS_DO_NOTHING,
             devices: [],
-            cameraId: null,
-            microphoneId: null,
-            speakerId: null
+            videoInId: null,
+            audioInId: null,
+            audioOutId: null
         };
         const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
         if (!isSupportedWebRTC) {
@@ -45,7 +45,7 @@ class App extends Component {
         let state = this.state;
         jsonpatch.apply(state, patches);
         this.setState(state);
-        console.info('cameraId', state.cameraId);
+        console.info('videoInId', state.videoInId);
         if (state.localStream) {
             console.info('localStream', state.localStream.id);
         }
@@ -73,9 +73,9 @@ class App extends Component {
                     talkingPeer: this.state.talkingPeer,
                     talkingStatus: this.state.talkingStatus,
                     devices: this.state.devices,
-                    cameraId: this.state.cameraId,
-                    microphoneId: this.state.microphoneId,
-                    speakerId: this.state.speakerId,
+                    videoInId: this.state.videoInId,
+                    audioInId: this.state.audioInId,
+                    audioOutId: this.state.audioOutId,
                     update: this.update
                 })}
             </div>

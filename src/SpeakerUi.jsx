@@ -25,6 +25,7 @@ class SpeakerUi extends Component {
                 if (!isFinishedGetCameraStream) {
                     return;
                 }
+                getDevices.bind(this)();
                 _joinRoom();
             });
             getCameraStream.bind(this)(width, height, frameRate, isMuted, () => {
@@ -55,9 +56,9 @@ class SpeakerUi extends Component {
                     screenShare={this.props.screenShare}
                     mode={this.props.mode}
                     devices={this.props.devices}
-                    cameraId={this.props.cameraId}
-                    microphoneId={this.props.microphoneId}
-                    speakerId={this.props.speakerId}
+                    videoInId={this.props.videoInId}
+                    audioInId={this.props.audioInId}
+                    audioOutId={this.props.audioOutId}
                 />
                 <RemoteVideos
                     remoteStreams={this.props.remoteStreams}

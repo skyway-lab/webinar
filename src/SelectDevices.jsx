@@ -39,14 +39,14 @@ class SelectDevices extends Component {
 
                 // screen -> camera
                 // camera -> camera
-                this.props.update([{ op: 'replace', path: '/cameraId', value: id }]);
+                this.props.update([{ op: 'replace', path: '/videoInId', value: id }]);
                 getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, (cameraStream) => {
                     this.props.room.replaceStream(cameraStream);
                 }, id, undefined);
 
                 return;
             case 'audioinput':
-                this.props.update([{ op: 'replace', path: '/microphoneId', value: id }]);
+                this.props.update([{ op: 'replace', path: '/audioInId', value: id }]);
 
                 if (isScreenUsed) {
                     // TBD
@@ -58,6 +58,7 @@ class SelectDevices extends Component {
                 }, undefined, id);
                 return;
             case 'audiooutput':
+                this.props.update([{ op: 'replace', path: '/audioOutId', value: id }]);
                 break;
         }
     }
@@ -69,8 +70,8 @@ class SelectDevices extends Component {
         const isCameraUsed = localStream === cameraStream;
 
         function menuItemFunc(kind) {
-            return function menuItem(deviceInfo) {
-                if (deviceInfo.kind !== kind) {
+            return function menuItem(device) {
+                if (device.kind !== kind) {
                     return false;
                 }
                 let icon;
@@ -78,27 +79,27 @@ class SelectDevices extends Component {
                 switch (kind) {
                     case 'videoinput':
                         icon = <Glyphicon glyph="facetime-video" />;
-                        isUsed = isCameraUsed && this.props.cameraId === deviceInfo.deviceId;
+                        isUsed = isCameraUsed && this.props.videoInId === device.deviceId;
                         break;
                     case 'audioinput':
                         icon = <span className="icon icon-microphone" />;
-                        isUsed = this.props.microphoneId === deviceInfo.deviceId;
+                        isUsed = this.props.audioInId === device.deviceId;
                         break;
                     case 'audiooutput':
                         icon = <Glyphicon glyph="volume-up" />;
-                        isUsed = this.props.speakerId === deviceInfo.deviceId;
+                        isUsed = this.props.audioOutId === device.deviceId;
                         break;
                     default:
                         break;
                 }
                 return (
                     <MenuItem
-                        eventKey={[kind, deviceInfo.deviceId]}
+                        eventKey={[kind, device.deviceId]}
                         onSelect={this.onSelect}
                         disabled={isUsed}
                     >
                         {icon}
-                        {deviceInfo.label}
+                        {device.label}
                         {(() => {
                             if (isUsed) {
                                 return (

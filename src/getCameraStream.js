@@ -4,15 +4,15 @@ import CONST from './Const';
 // this.props.update
 // this props alerts
 
-function getCameraStream(width, height, frameRate, isMuted, callback, cameraId = this.props.cameraId, microphoneId = this.props.microphoneId) {
+function getCameraStream(width, height, frameRate, isMuted, callback, videoInId = this.props.videoInId, audioInId = this.props.audioInId) {
     const videoConstraints = {
-        deviceId: cameraId ? { exact: cameraId } :undefined,
+        deviceId: videoInId ? { exact: videoInId } :undefined,
         width,
         height,
         frameRate
     };
     const audioConstraints = {
-        deviceId: microphoneId ? { exact: microphoneId } :undefined,
+        deviceId: audioInId ? { exact: audioInId } :undefined,
     };
     const timerAlertGUM = setTimeout(() => {
         this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
