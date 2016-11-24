@@ -53,7 +53,7 @@ class SelectDevices extends Component {
                     return;
                 }
 
-                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, () => {
+                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, (cameraStream) => {
                     this.props.room.replaceStream(cameraStream);
                 }, undefined, id);
                 return;
