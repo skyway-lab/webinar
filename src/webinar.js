@@ -71,7 +71,7 @@ function _joinRoom(_localStream, _isAudience) {
     room.on('peerLeave', id => {
         console.log('room.on(\'peerLeave\'): ', id);
         const doesSpeakerExit
-            = id === CONST.SPEAKER_PEER_ID
+            = id === this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
             && this.props.mode === CONST.ROLE_AUDIENCE;
         if (doesSpeakerExit) {
             this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);

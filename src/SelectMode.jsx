@@ -10,6 +10,7 @@ class SelectMode extends Component {
         this.onChange = this.onChange.bind(this);
         const index = Math.floor(Math.random() * CONST.ROOM_NAME_WORDS.length);
         this.placeholder = CONST.ROOM_NAME_WORDS[index] + '-webinar';
+        window.onhashchange = () => {};
     }
     onChange(event) {
         this.props.update([{ op: 'replace', path: '/roomName', value: event.target.value }]);

@@ -12,6 +12,9 @@ class SpeakerUi extends Component {
             { op: 'replace', path: '/mode', value: CONST.ROLE_SPEAKER },
             { op: 'replace', path: '/roomName', value: this.props.params.roomName}
         ]);
+        window.onhashchange = () => {
+            location.reload();
+        };
     }
     render() {
         if (!this.isWebinarStarted) {
