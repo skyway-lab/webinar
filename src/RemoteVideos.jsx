@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import RemoteVideo from './RemoteVideo';
+import Video from './Video';
 import CONST from './Const';
 
 class RemoteVideos extends Component {
@@ -10,43 +10,29 @@ class RemoteVideos extends Component {
         }, CONST.TIMEOUT_MILLISECONDS_ALERT_NO_SPEAKER);
     }
     render() {
-        let className;
-        switch (this.props.opponent) {
-            case CONST.ROLE_SPEAKER:
-                className = 'speaker';
-                break;
-            case CONST.ROLE_AUDIENCE:
-                className = 'audience';
-                break;
-            case CONST.ROLE_QUESTIONER:
-                className = 'questioner';
-                break;
-            default:
-                break;
-        }
-        let title;
-        if (this.props.opponent === CONST.ROLE_AUDIENCE) {
-            title = (
-                <h2><span>Audience</span></h2>
-            );
-        }
-        return (
-            <div className={"remote-videos remote-videos-" + className}>
-                {title}
-                {this.props.remoteStreams.map(stream => (
-                    <RemoteVideo
-                        opponent={this.props.opponent}
-                        localStream={this.props.localStream}
-                        update={this.props.update}
-                        talkingStatus={this.props.talkingStatus}
-                        waitingPeers={this.props.waitingPeers}
-                        talkingPeer={this.props.talkingPeer}
-                        room={this.props.room}
-                        speakerStreamKind={this.props.speakerStreamKind}
-                        stream={stream}
-                        timerNoSpeaker={this.timerNoSpeaker}
+        const remoteVideo = this.props.remoteStreams.map(stream => {
+            const url = URL.createObjectURL(stream);
+            if (this.props.opponent !== CONST.ROLE_SPEAKER) {
+                return false;
+            }
+            let isSpeaker = stream.peerId === CONST.SPEAKER_PEER_ID;
+            if (!isSpeaker) {
+                return false;
+            }
+            clearTimeout(this.timerNoSpeaker);
+            return (
+                <div className="remote-video">
+                    <Video
+                        muted={false}
+                        className="camera"
+                        src={url}
                     />
-                ))}
+                </div>
+            );
+        });
+        return (
+            <div className="remote-videos remote-videos-speaker">
+                { remoteVideo }
             </div>
         );
     }

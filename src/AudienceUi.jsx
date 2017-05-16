@@ -17,19 +17,15 @@ class AudienceUi extends Component {
     render() {
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.bind(this)(null, 160, 90, 1, true);
+            webinar.receive.bind(this)();
         }
         return (
             <div id="AudienceUi">
                 <RemoteVideos
                     localStream={this.props.localStream}
                     remoteStreams={this.props.remoteStreams}
-                    speakerStreamKind={this.props.speakerStreamKind}
                     opponent={CONST.ROLE_SPEAKER}
-                    waitingPeers={this.props.waitingPeers}
-                    talkingPeer={this.props.talkingPeer}
                     update={this.props.update}
-                    talkingStatus={this.props.talkingStatus}
                     room={this.props.room}
                 />
             </div>
