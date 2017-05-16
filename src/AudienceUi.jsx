@@ -15,6 +15,9 @@ class AudienceUi extends Component {
         this.timerNoSpeaker = setTimeout(() => {
             this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);
         }, CONST.TIMEOUT_MILLISECONDS_ALERT_NO_SPEAKER);
+        window.onhashchange = () => {
+            location.reload();
+        };
     }
     render() {
         if (!this.isWebinarStarted) {
@@ -23,7 +26,7 @@ class AudienceUi extends Component {
         }
         const remoteVideo = this.props.remoteStreams.map(stream => {
             const url = URL.createObjectURL(stream);
-            let isSpeaker = stream.peerId === CONST.SPEAKER_PEER_ID;
+            let isSpeaker = stream.peerId === this.props.roomName + '-' + CONST.SPEAKER_PEER_ID;
             if (!isSpeaker) {
                 return false;
             }
