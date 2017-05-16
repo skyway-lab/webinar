@@ -113,7 +113,7 @@ function _connectToSkyWay(_myPeerId, _width, _height, _frameRate) {
         if (err.message === 'You do not have permission to send to this room') {
             this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_ROOM_PERMISSION }]);
         }
-        if (err.message === 'PeerId "speaker" is already in use. Choose a different peerId and try again.') {
+        if (/^PeerId ".+" is already in use\. Choose a different peerId and try again\.$/.test(err.message)) {
             this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_PEERID_IN_USE }]);
         }
     });
