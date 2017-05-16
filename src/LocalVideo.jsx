@@ -24,12 +24,17 @@ class LocalVideo extends Component {
             }
             selectDevices = (
                 <SelectDevices
+                    alerts={this.props.alerts}
                     room={this.props.room}
                     update={this.props.update}
                     localStream={this.props.localStream}
                     cameraStream={this.props.cameraStream}
                     screenStream={this.props.screenStream}
                     screenShare={this.props.screenShare}
+                    devices={this.props.devices}
+                    videoInId={this.props.videoInId}
+                    audioInId={this.props.audioInId}
+                    audioOutId={this.props.audioOutId}
                 />
             );
         }
