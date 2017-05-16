@@ -3,33 +3,19 @@
   padding: 0px;
   height: 100vh;
   position: relative;
-}
-
-#AudienceUi .remote-videos-speaker h2 {
-  display: none;
-}
-
-#AudienceUi .remote-videos-speaker .remote-video {
-  margin: 0px;
-  padding: 0px;
-  height: 100vh;
   overflow: hidden;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video video {
+#AudienceUi video {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video video.camera {
+#AudienceUi video.camera {
   object-fit: cover;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video video.screen {
+#AudienceUi video.screen {
   object-fit: contain;
-}
-
-#AudienceUi h2 {
-  display: none;
 }
