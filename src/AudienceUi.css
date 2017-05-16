@@ -3,95 +3,19 @@
   padding: 0px;
   height: 100vh;
   position: relative;
-}
-
-#AudienceUi .remote-videos-speaker h2 {
-  display: none;
-}
-
-#AudienceUi .remote-videos-speaker .remote-video {
-  margin: 0px;
-  padding: 0px;
-  height: 100vh;
   overflow: hidden;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video video {
+#AudienceUi video {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video video.camera {
+#AudienceUi video.camera {
   object-fit: cover;
 }
 
-#AudienceUi .remote-videos-speaker .remote-video video.screen {
+#AudienceUi video.screen {
   object-fit: contain;
-}
-
-#AudienceUi #LocalVideo {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 160px;
-  height: 90px;
-  box-shadow: 0 0 10px 0 black;
-}
-
-#AudienceUi #LocalVideo video {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
-  -webkit-transform: scaleX(-1);
-  -moz-transform: scaleX(-1);
-  transform: scaleX(-1);
-}
-
-#AudienceUi h2 {
-  display: none;
-}
-
-#AudienceUi .button-wrapper {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 160px;
-  height: 90px;
-  z-index: 100;
-  text-align: center;
-}
-
-#AudienceUi .button-wrapper button {
-  line-height: 36px;
-  background-color: rgba(0, 0, 0, 0.25);
-  border: #eee double 3px;
-  color: #eee;
-  font-weight: 100;
-  font-size: 24px;
-  padding: 0 12px;
-  margin-top: 24px;
-}
-
-#AudienceUi .button-wrapper button:focus {
-  outline: none;
-}
-
-#AudienceUi .remote-videos-questioner h2 {
-  display: none;
-}
-
-#AudienceUi .remote-videos-questioner .remote-video {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  width: 160px;
-  height: 90px;
-  box-shadow: 0 0 10px 0 black;
-}
-
-#AudienceUi .remote-videos-questioner .remote-video video {
-  object-fit: cover;
-  width: 100%;
-  height: 100%;
 }
