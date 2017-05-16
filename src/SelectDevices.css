@@ -1,4 +1,4 @@
-#SelectDevices {
+#Config {
   position: absolute;
   bottom: 10px;
   left: 0;
@@ -6,6 +6,6 @@
   text-align: center;
 }
 
-#SelectDevices h2 {
+#Config h2 {
   display: none;
 }

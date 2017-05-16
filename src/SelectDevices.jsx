@@ -1,171 +1,128 @@
 import React, { Component } from 'react';
-import { Button, ButtonGroup, ButtonToolbar, Glyphicon, DropdownButton, Dropdown, MenuItem } from 'react-bootstrap';
+import { Button, ButtonGroup, Glyphicon } from 'react-bootstrap';
 import CONST from './Const';
-import getCameraStream from './getCameraStream';
-import getScreenStream from './getScreenStream';
 import './SelectDevices.css';
-import './CustomIcons.css';
 
-class SelectDevices extends Component {
+class Config extends Component {
     constructor(props) {
         super(props);
-        this.onSelect = this.onSelect.bind(this);
+        this.onClick = this.onClick.bind(this);
     }
-    onSelect(eventKey, event) {
+    onClick(event) {
         const localStream = this.props.localStream;
         const cameraStream = this.props.cameraStream;
         const screenStream = this.props.screenStream;
-        const isScreenUsed = localStream === screenStream;
+        const room = this.props.room;
+
+        const isCameraClicked = event.currentTarget.value === CONST.STREAM_KIND_CAMERA;
         const isCameraUsed = localStream === cameraStream;
 
-        const [kind, id] = eventKey;
-
-        switch (kind) {
-            case 'videoinput':
-                let isScreenClicked = id === CONST.STREAM_KIND_SCREEN;
-
-                if (isScreenClicked) {
-                    // camera -> screen
-                    getScreenStream.bind(this)(CONST.SPEAKER_SCREEN_FRAME_RATE);
-                    return;
-                }
-
-                if (isScreenUsed) {
-                    // screen -> camera
-                    localStream.getTracks().forEach(track => {
-                        track.stop();
-                    });
-                }
-
-                // screen -> camera
-                // camera -> camera
-                this.props.update([{ op: 'replace', path: '/videoInId', value: id }]);
-                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, (cameraStream) => {
-                    this.props.room.replaceStream(cameraStream);
-                }, id, undefined);
-
+        if (isCameraClicked) {
+            if (isCameraUsed) {
+                // it will be never executed.
                 return;
-            case 'audioinput':
-                this.props.update([{ op: 'replace', path: '/audioInId', value: id }]);
+            }
+            localStream.getTracks().forEach(track => {
+                track.stop();
+            });
+            return;
+        }
 
-                if (isScreenUsed) {
-                    // TBD
-                    return;
+        const isScreenUsed = screenStream === cameraStream;
+        if (isScreenUsed) {
+            return;
+        }
+
+        const screenShare = this.props.screenShare || new SkyWay.ScreenShare({debug: true});
+        if (!this.props.screenShare) {
+            this.props.update([{ op: 'replace', path: '/screenShare', value: screenShare }]);
+        }
+
+        function successScreenShare (screenStream) {
+            room.replaceStream(screenStream);
+            room.send({streamKind: CONST.STREAM_KIND_SCREEN});
+            this.props.update([
+                { op: 'replace', path: '/localStream', value: screenStream },
+                { op: 'replace', path: '/screenStream', value: screenStream }
+            ]);
+        }
+        successScreenShare = successScreenShare.bind(this);
+
+        function failScreenShare (err) {
+            console.error('[error in starting screen share]', err);
+        }
+        failScreenShare = failScreenShare.bind(this);
+
+        function stopScreenShare () {
+            room.replaceStream(cameraStream);
+            room.send({streamKind: CONST.STREAM_KIND_CAMERA});
+            this.props.update([{ op: 'replace', path: '/localStream', value: cameraStream }]);
+        }
+        stopScreenShare = stopScreenShare.bind(this);
+
+        function startScreenShareFirst() {
+            screenShare.startScreenShare({
+                FrameRate: 5
+            }, successScreenShare, failScreenShare, stopScreenShare);
+        }
+        startScreenShareFirst = startScreenShareFirst.bind(this);
+
+        function startScreenShare() {
+            screenShare.startScreenShare({
+                FrameRate: 5
+            }, () => {}, () => {}, () => {});
+        }
+        startScreenShare = startScreenShare.bind(this);
+
+        function installExtension() {
+            chrome.webstore.install('', () => {
+                console.log('succeeded to install extension');
+            }, ev => {
+                console.error('[error in installing extension]', ev);
+            });
+
+            window.addEventListener('message', function(ev) {
+                if(ev.data.type === "ScreenShareInjected") {
+                    console.log('screen share extension is injected, get ready to use');
+                    startScreenShareFirst();
                 }
+            }, false);
+        }
 
-                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, false, (cameraStream) => {
-                    this.props.room.replaceStream(cameraStream);
-                }, undefined, id);
-                return;
-            case 'audiooutput':
-                this.props.update([{ op: 'replace', path: '/audioOutId', value: id }]);
-                break;
+
+        if (screenShare.isEnabledExtension()) {
+            if (!this.props.screenShare) {
+                startScreenShareFirst();
+            } else {
+                startScreenShare();
+            }
+        } else {
+            installExtension();
         }
     }
     render() {
         const localStream = this.props.localStream;
         const cameraStream = this.props.cameraStream;
         const screenStream = this.props.screenStream;
-        const isScreenUsed = localStream === screenStream;
-        const isCameraUsed = localStream === cameraStream;
-
-        function menuItemFunc(kind) {
-            return function menuItem(device) {
-                if (device.kind !== kind) {
-                    return false;
-                }
-                let icon;
-                let isUsed;
-                switch (kind) {
-                    case 'videoinput':
-                        icon = <Glyphicon glyph="facetime-video" />;
-                        isUsed = isCameraUsed && this.props.videoInId === device.deviceId;
-                        break;
-                    case 'audioinput':
-                        icon = <span className="icon icon-microphone" />;
-                        isUsed = this.props.audioInId === device.deviceId;
-                        break;
-                    case 'audiooutput':
-                        icon = <Glyphicon glyph="volume-up" />;
-                        isUsed = this.props.audioOutId === device.deviceId;
-                        break;
-                    default:
-                        break;
-                }
-                return (
-                    <MenuItem
-                        eventKey={[kind, device.deviceId]}
-                        onSelect={this.onSelect}
-                        disabled={isUsed}
-                    >
-                        {icon}
-                        {device.label}
-                        {(() => {
-                            if (isUsed) {
-                                return (
-                                    <Glyphicon glyph="ok" />
-                                );
-                            }
-                        })()}
-                    </MenuItem>
-                );
-            }
-        }
         return (
-            <div id="SelectDevices">
-                    <ButtonGroup>
-                        <Dropdown id="camera">
-                            <Dropdown.Toggle>
-                                {(() => {
-                                    if (isCameraUsed) {
-                                        return (
-                                            <Glyphicon glyph="facetime-video"/>
-                                        );
-                                    }
-                                    return (
-                                        <span className="icon icon-display" />
-                                    );
-                                })()}
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                {this.props.devices.map(menuItemFunc('videoinput').bind(this))}
-                                <MenuItem
-                                    eventKey={['videoinput', CONST.STREAM_KIND_SCREEN]}
-                                    onSelect={this.onSelect}
-                                    disabled={isScreenUsed}
-                                >
-                                    <span className="icon icon-display" />
-                                    Screen Sharing
-                                    {(() => {
-                                        if (isScreenUsed) {
-                                            return (
-                                                <Glyphicon glyph="ok" />
-                                            );
-                                        }
-                                    })()}
-                                </MenuItem>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                        <Dropdown id="microphone">
-                            <Dropdown.Toggle>
-                                <span className="icon icon-microphone" />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                {this.props.devices.map(menuItemFunc('audioinput').bind(this))}
-                            </Dropdown.Menu>
-                        </Dropdown>
-                        <Dropdown id="speaker">
-                            <Dropdown.Toggle>
-                                <Glyphicon glyph="volume-up" />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                {this.props.devices.map(menuItemFunc('audiooutput').bind(this))}
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </ButtonGroup>
+            <div id="Config">
+                <ButtonGroup>
+                    <Button
+                        title="Camera"
+                        value={CONST.STREAM_KIND_CAMERA}
+                        onClick={this.onClick}
+                        disabled={!localStream || localStream === cameraStream}
+                    ><Glyphicon glyph="facetime-video" /></Button>
+                    <Button
+                        title="Screen"
+                        value={CONST.STREAM_KIND_SCREEN}
+                        onClick={this.onClick}
+                        disabled={localStream === screenStream}
+                    ><Glyphicon glyph="list-alt" /></Button>
+                </ButtonGroup>
             </div>
         );
     }
 }
 
-export default SelectDevices;
+export default Config;

@@ -15,8 +15,6 @@ class App extends Component {
             alerts: [],
             mode: null,
             roomName: '',
-            peer: null,
-            room: null,
             localStream: null,
             cameraStream: null,
             screenStream: null,
@@ -26,10 +24,8 @@ class App extends Component {
             waitingPeers: [],
             talkingPeer: null,
             talkingStatus: CONST.QA_STATUS_DO_NOTHING,
-            devices: [],
-            videoInId: null,
-            audioInId: null,
-            audioOutId: null
+            room: null,
+            myPeerId: null
         };
         const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
         if (!isSupportedWebRTC) {
@@ -40,18 +36,11 @@ class App extends Component {
             this.state.alerts.push(CONST.ALERT_KIND_UNSTABLE_SFU);
         }
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
-        window.addEventListener('hashchange', () => {
-            location.reload();
-        });
     }
     update(patches) {
         let state = this.state;
         jsonpatch.apply(state, patches);
         this.setState(state);
-        console.info('videoInId', state.videoInId);
-        if (state.localStream) {
-            console.info('localStream', state.localStream.id);
-        }
     }
     render() {
         return (
@@ -64,8 +53,6 @@ class App extends Component {
                     alerts: this.state.alerts,
                     mode: this.state.mode,
                     roomName: this.state.roomName,
-                    peer: this.state.peer,
-                    room: this.state.room,
                     localStream: this.state.localStream,
                     cameraStream: this.state.cameraStream,
                     screenStream: this.state.screenStream,
@@ -75,10 +62,8 @@ class App extends Component {
                     waitingPeers: this.state.waitingPeers,
                     talkingPeer: this.state.talkingPeer,
                     talkingStatus: this.state.talkingStatus,
-                    devices: this.state.devices,
-                    videoInId: this.state.videoInId,
-                    audioInId: this.state.audioInId,
-                    audioOutId: this.state.audioOutId,
+                    room: this.state.room,
+                    myPeerId: this.state.myPeerId,
                     update: this.update
                 })}
             </div>
