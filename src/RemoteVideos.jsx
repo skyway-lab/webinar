@@ -5,11 +5,9 @@ import CONST from './Const';
 class RemoteVideos extends Component {
     constructor(props) {
         super(props);
-        if (this.props.opponent === CONST.ROLE_SPEAKER) {
-            this.timerNoSpeaker = setTimeout(() => {
-                this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);
-            }, CONST.TIMEOUT_MILLISECONDS_ALERT_NO_SPEAKER);
-        }
+        this.timerNoSpeaker = setTimeout(() => {
+            this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);
+        }, CONST.TIMEOUT_MILLISECONDS_ALERT_NO_SPEAKER);
     }
     render() {
         let className;

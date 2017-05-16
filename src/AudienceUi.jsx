@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
 import RemoteVideos from './RemoteVideos';
-import LocalVideo from './LocalVideo';
 import CONST from './Const';
 import webinar from './webinar';
 import './AudienceUi.css';
@@ -20,25 +19,6 @@ class AudienceUi extends Component {
             this.isWebinarStarted = true;
             webinar.bind(this)(null, 160, 90, 1, true);
         }
-        let localVideo;
-        let questionerVideo;
-        if (this.props.talkingStatus !== CONST.QA_STATUS_DO_NOTHING) {
-            localVideo = (
-                <LocalVideo
-                    localStream={this.props.localStream}
-                    mode={this.props.mode}
-                />
-            );
-        }
-        if (this.props.talkingPeer) {
-            questionerVideo = (
-                <RemoteVideos
-                    remoteStreams={this.props.remoteStreams}
-                    talkingPeer={this.props.talkingPeer}
-                    opponent={CONST.ROLE_QUESTIONER}
-                />
-            );
-        }
         return (
             <div id="AudienceUi">
                 <RemoteVideos
@@ -52,8 +32,6 @@ class AudienceUi extends Component {
                     talkingStatus={this.props.talkingStatus}
                     room={this.props.room}
                 />
-                {localVideo}
-                {questionerVideo}
             </div>
         );
     }

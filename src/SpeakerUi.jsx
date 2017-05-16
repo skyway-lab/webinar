@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
-import RemoteVideos from './RemoteVideos';
-import LocalVideo from './LocalVideo';
+import Video from './Video';
 import CONST from './Const';
 import webinar from './webinar';
 import './SpeakerUi.css';
@@ -20,24 +18,17 @@ class SpeakerUi extends Component {
             this.isWebinarStarted = true;
             webinar.bind(this)(CONST.SPEAKER_PEER_ID, 1280, 720, 5, false);
         }
+        if (!this.props.localStream) {
+            return false;
+        }
+        const url = URL.createObjectURL(this.props.localStream);
         return (
             <div id="SpeakerUi">
-                <LocalVideo
-                    room={this.props.room}
-                    update={this.props.update}
-                    localStream={this.props.localStream}
-                    cameraStream={this.props.cameraStream}
-                    screenStream={this.props.screenStream}
-                    screenShare={this.props.screenShare}
-                    mode={this.props.mode}
-                />
-                <RemoteVideos
-                    remoteStreams={this.props.remoteStreams}
-                    opponent={CONST.ROLE_AUDIENCE}
-                    waitingPeers={this.props.waitingPeers}
-                    talkingPeer={this.props.talkingPeer}
-                    room={this.props.room}
-                    update={this.props.update}
+                <h2><span>ON AIR</span></h2>
+                <Video
+                    muted={true}
+                    src={url}
+                    className="camera"
                 />
             </div>
         );
