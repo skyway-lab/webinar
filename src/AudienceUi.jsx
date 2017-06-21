@@ -13,11 +13,8 @@ class AudienceUi extends Component {
             { op: 'replace', path: '/roomName', value: this.props.params.roomName}
         ]);
         this.timerNoSpeaker = setTimeout(() => {
-            this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);
+            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER}]);
         }, CONST.TIMEOUT_MILLISECONDS_ALERT_NO_SPEAKER);
-        window.onhashchange = () => {
-            location.reload();
-        };
     }
     render() {
         if (!this.isWebinarStarted) {

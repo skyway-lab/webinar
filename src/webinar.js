@@ -2,7 +2,7 @@ import CONST from './Const';
 
 let _peer;
 
-function _getUserMedia(__width, __height, __frameRate, __isAudience) {
+function _getUserMedia(__width, __height, __frameRate) {
     const videoConstraints = {
         width: __width,
         height: __height,
@@ -22,38 +22,34 @@ function _getUserMedia(__width, __height, __frameRate, __isAudience) {
             this.props.update([
                 { op: 'replace', path: '/localStream', value: localStream }
             ]);
-
-            /* work around start */
-            if (__isAudience) {
-                localStream.getAudioTracks().forEach(track => {
-                    track.enabled = false;
-                });
-                localStream.getVideoTracks().forEach(track => {
-                    track.enabled = false;
-                });
-            }
-            /* work around end */
-
-            _joinRoom(localStream, false);
+            _joinRoom(localStream);
         }).catch(err => {
         console.error(err);
         this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
     });
 }
 
-function _joinRoom(_localStream, _isAudience) {
-    /* work around start */
-    //if (_isAudience) {
-    //    _localStream = new window.MediaStream();
-    //}
-    /* work around end */
+function _getDummyStream() {
+
+}
+
+function _joinRoom(_localStream) {
 
     const roomName = this.props.roomName;
     const room = _peer.joinRoom(roomName, { mode: 'sfu', stream: _localStream });
     this.props.update([{ op: 'replace', path: '/room', value: room }]);
     room.on('stream', _remoteStream => {
         console.log('room.on(\'stream\'): ', _remoteStream.peerId);
-        this.props.update([{ op: 'add', path: '/remoteStreams/-', value: _remoteStream }]);
+        let patch = [];
+        const doesSpeakerJoin
+            = _remoteStream.peerId === this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
+            && this.props.mode === CONST.ROLE_AUDIENCE;
+        const index = this.props.alerts.indexOf(CONST.ALERT_KIND_NO_SPEAKER);
+        if (doesSpeakerJoin && index !== -1) {
+            patch.push({ op: 'remove', path: '/alerts/' + index });
+        }
+        patch.push({ op: 'add', path: '/remoteStreams/-', value: _remoteStream });
+        this.props.update(patch);
     });
     room.on('removeStream', _remoteStream => {
         console.log('room.on(\'removeStream\')');
@@ -74,16 +70,9 @@ function _joinRoom(_localStream, _isAudience) {
             = id === this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
             && this.props.mode === CONST.ROLE_AUDIENCE;
         if (doesSpeakerExit) {
-            this.props.update([ { op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER} ]);
+            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER}]);
         }
     });
-    // skyway.js seems to close beforehand.
-    /*
-     window.addEventListener('beforeunload', () => {
-     room.close();
-     console.log('window.on(\'beforeunload\')');
-     }, false);
-     */
 }
 
 function _connectToSkyWay(_myPeerId, _width, _height, _frameRate) {
@@ -102,10 +91,12 @@ function _connectToSkyWay(_myPeerId, _width, _height, _frameRate) {
         if (_myPeerId) {
             _getUserMedia(_width, _height, _frameRate);
         } else {
-            /* work around start */
-            //_joinRoom(null, true);
-            _getUserMedia(160, 120, 1, true);
-            /* work around end */
+            const canvas = document.createElement("canvas");
+            canvas.width = 1;
+            canvas.height = 1;
+            canvas.getContext("2d");
+            const localStream = canvas.captureStream(1);
+            _joinRoom(localStream);
         }
     });
     _peer.on('error', err => {
@@ -117,6 +108,10 @@ function _connectToSkyWay(_myPeerId, _width, _height, _frameRate) {
             this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_PEERID_IN_USE }]);
         }
     });
+    window.onbeforeunload = () => {
+        _peer.disconnect();
+        console.log('window.on(\'beforeunload\')');
+    };
 }
 
 function send(myPeerId, width, height, frameRate) {
@@ -127,7 +122,6 @@ function send(myPeerId, width, height, frameRate) {
 }
 
 function receive() {
-    _getUserMedia = _getUserMedia.bind(this);
     _joinRoom = _joinRoom.bind(this);
     _connectToSkyWay = _connectToSkyWay.bind(this);
     _connectToSkyWay();

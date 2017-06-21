@@ -29,6 +29,12 @@ class App extends Component {
             this.state.alerts.push(CONST.ALERT_KIND_UNSTABLE_SFU);
         }
         this.update = this.update.bind(this); // es6対応、ここで実行するわけではない(最後に () がない)
+        window.onhashchange = () => {
+            console.log('window.onhashchange');
+            if (!!location.hash) {
+                location.reload();
+            }
+        };
     }
     update(patches) {
         let state = this.state;

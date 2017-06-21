@@ -18,7 +18,7 @@ export default class Alerts extends Component {
         location.reload();
     }
     goHome() {
-        location.assign('/');
+        location.assign('./');
     }
     render () {
         let notSupportedWebRTC;
