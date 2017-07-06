@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import { Button, ButtonGroup, ButtonToolbar, Glyphicon, DropdownButton, Dropdown, MenuItem } from 'react-bootstrap';
-import CONST from './Const';
 import './SelectDevices.css';
-import getCameraStream from './getCameraStream';
+import webinar from './webinar';
 import './CustomIcons.css';
 
 class SelectDevices extends Component {
@@ -13,22 +12,17 @@ class SelectDevices extends Component {
 
     onSelect(eventKey, event) {
         const [kind, id] = eventKey;
-
         switch (kind) {
             case 'videoinput':
                 this.props.update([{op: 'replace', path: '/videoInId', value: id}]);
-                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, (stream) => {
-                    this.props.room.replaceStream(stream);
-                }, id, undefined);
-
-                return;
+                webinar.changeSource.bind(this)(id, null);
+                break;
             case 'audioinput':
                 this.props.update([{op: 'replace', path: '/audioInId', value: id}]);
-                getCameraStream.bind(this)(CONST.SPEAKER_CAMERA_WIDTH, CONST.SPEAKER_CAMERA_HEIGHT, CONST.SPEAKER_CAMERA_FRAME_RATE, (stream) => {
-                    this.props.room.replaceStream(stream);
-                }, undefined, id);
-                return;
+                webinar.changeSource.bind(this)(null, id);
+                break;
         }
+        return;
     }
 
     render() {

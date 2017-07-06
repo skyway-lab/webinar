@@ -4,7 +4,7 @@ import SpeakerUi from './SpeakerUi';
 import AudienceUi from './AudienceUi';
 import Alerts from './Alerts';
 import SelectMode from './SelectMode';
-import CONST from './Const';
+import CONST from './const';
 import jsonpatch from 'fast-json-patch';
 import './App.css';
 

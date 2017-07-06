@@ -1,145 +1,159 @@
-import CONST from './Const';
+import CONST from './const';
 
-let _peer;
-
-function _getDevices() {
-    navigator.mediaDevices.enumerateDevices().then(devices => {
-        this.props.update([{ op: 'replace', path: '/devices', value: devices }]);
-        console.info('videoInId', this.props.videoInId, ', audioInId: ', this.props.audioInId);
-        if (!this.props.videoInId) {
-            const videoInId = devices.find(device => device.kind === 'videoinput').deviceId;
-            this.props.update([{ op: 'replace', path: '/videoInId', value: videoInId }]);
+function _newPeer(_this, _myPeerId) {
+    return new Promise((resolve, reject) => {
+        let _peer;
+        if (_myPeerId) {
+            _peer = new Peer(_myPeerId, {
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
+            });
+        } else {
+            _peer = new Peer({
+                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
+            });
         }
-        if (!this.props.audioInId) {
-            const audioInId = devices.find(device => device.kind === 'audioinput').deviceId;
-            this.props.update([{ op: 'replace', path: '/audioInId', value: audioInId }]);
-        }
-    }).catch(err => {
-        console.error(err);
+        _this.props.update([{ op: 'replace', path: '/myPeerId', value: _peer.id }]);
+        _peer.on('open', () => {
+             window.onbeforeunload = () => {
+                 _peer.disconnect();
+             };
+            resolve([_this, _peer]);
+        });
+        _peer.on('error', err => {
+            console.error(err.message);
+            if (err.message === 'You do not have permission to send to this room') {
+                _this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_ROOM_PERMISSION }]);
+            }
+            if (/^PeerId ".+" is already in use\. Choose a different peerId and try again\.$/.test(err.message)) {
+                _this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_PEERID_IN_USE }]);
+            }
+            reject();
+        });
     });
 }
 
-function _getUserMedia(__width, __height, __frameRate) {
-    const videoConstraints = {
-        width: __width,
-        height: __height,
-        frameRate: __frameRate,
-        facingMode: 'user'
-    };
-    const timerAlertGUM = setTimeout(() => {
-        this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
-    }, CONST.TIMEOUT_MILLISECONDS_ALERT_GUM);
-    navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
-        .then(localStream => {
-            _getDevices();
-            const index = this.props.alerts.indexOf(CONST.ALERT_KIND_GUM);
-            if (index !== -1) {
-                this.props.update([{ op: 'remove', path: '/alerts/' + index }]);
+function _getStream(_this, _videoInId, _audioInId) {
+    return new Promise((resolve, reject) => {
+        const constraints = {
+            video: {
+                deviceId: _videoInId ? { exact: _videoInId } : undefined,
+                width: CONST.SPEAKER_CAMERA_WIDTH,
+                height: CONST.SPEAKER_CAMERA_HEIGHT,
+                frameRate: CONST.SPEAKER_CAMERA_FRAME_RATE,
+                facingMode: 'user'
+            },
+            audio: {
+                deviceId: _audioInId ? { exact: _audioInId } : undefined,
             }
-            clearTimeout(timerAlertGUM);
-            this.props.update([
-                { op: 'replace', path: '/localStream', value: localStream }
-            ]);
-            _joinRoom(localStream);
-        }).catch(err => {
-            console.error(err);
-            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
-        });
+        };
+        const timerAlertGUM = setTimeout(() => {
+            _this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
+        }, CONST.TIMEOUT_MILLISECONDS_ALERT_GUM);
+
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(stream => {
+                const index = _this.props.alerts.indexOf(CONST.ALERT_KIND_GUM);
+                if (index !== -1) {
+                    _this.props.update([{ op: 'remove', path: '/alerts/' + index }]);
+                }
+                clearTimeout(timerAlertGUM);
+                _this.props.update([
+                    { op: 'replace', path: '/localStream', value: stream }
+                ]);
+                resolve([_this, stream]);
+            })
+            .catch(error => {
+                console.error(error);
+                _this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
+                reject();
+            });
+    });
 }
 
-function _joinRoom(_localStream) {
+function _getDummyStream(_this) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    canvas.getContext("2d");
+    const dummyStream = canvas.captureStream(1);
+    return Promise.resolve([_this, dummyStream]);
+}
 
-    const roomName = this.props.roomName;
+function _getDevices(_this) {
+    return new Promise((resolve, rejcet) => {
+        navigator.mediaDevices.enumerateDevices()
+            .then(_devices => {
+                _this.props.update([{ op: 'replace', path: '/devices', value: _devices }]);
+                if (!_this.props.videoInId) {
+                    const videoInId = _devices.find(device => device.kind === 'videoinput').deviceId;
+                    _this.props.update([{ op: 'replace', path: '/videoInId', value: videoInId }]);
+                }
+                if (!_this.props.audioInId) {
+                    const audioInId = _devices.find(device => device.kind === 'audioinput').deviceId;
+                    _this.props.update([{ op: 'replace', path: '/audioInId', value: audioInId }]);
+                }
+                resolve(_this);
+            });
+    });
+}
+
+function _joinRoom(_values) {
+    const _this = _values[0][0];
+    const _peer = _values[0][1];
+    const _localStream = _values[1][1];
+    const roomName = _this.props.roomName;
     const room = _peer.joinRoom(roomName, { mode: 'sfu', stream: _localStream });
-    this.props.update([{ op: 'replace', path: '/room', value: room }]);
+    _this.props.update([{ op: 'replace', path: '/room', value: room }]);
     room.on('stream', _remoteStream => {
-        console.log('room.on(\'stream\'): ', _remoteStream.peerId);
         let patch = [];
         const doesSpeakerJoin
-            = _remoteStream.peerId === this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
-            && this.props.mode === CONST.ROLE_AUDIENCE;
-        const index = this.props.alerts.indexOf(CONST.ALERT_KIND_NO_SPEAKER);
+            = _remoteStream.peerId === _this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
+            && _this.props.mode === CONST.ROLE_AUDIENCE;
+        const index = _this.props.alerts.indexOf(CONST.ALERT_KIND_NO_SPEAKER);
         if (doesSpeakerJoin && index !== -1) {
             patch.push({ op: 'remove', path: '/alerts/' + index });
         }
         patch.push({ op: 'add', path: '/remoteStreams/-', value: _remoteStream });
-        this.props.update(patch);
+        _this.props.update(patch);
     });
     room.on('removeStream', _remoteStream => {
-        console.log('room.on(\'removeStream\')');
-        const index = this.props.remoteStreams.indexOf(_remoteStream);
+        const index = _this.props.remoteStreams.indexOf(_remoteStream);
         if (index !== -1) {
-            this.props.update([{ op: 'remove', path: '/remoteStreams/' + index }]);
+            _this.props.update([{ op: 'remove', path: '/remoteStreams/' + index }]);
         }
-    });
-    room.on('close', () => {
-        console.log('room.on(\'close\')');
-    });
-    room.on('peerJoin', id => {
-        console.log('room.on(\'peerJoin\'): ', id);
     });
     room.on('peerLeave', id => {
-        console.log('room.on(\'peerLeave\'): ', id);
         const doesSpeakerExit
-            = id === this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
-            && this.props.mode === CONST.ROLE_AUDIENCE;
+            = id === _this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID
+            && _this.props.mode === CONST.ROLE_AUDIENCE;
         if (doesSpeakerExit) {
-            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER}]);
+            _this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_NO_SPEAKER}]);
         }
     });
 }
 
-function _connectToSkyWay(_myPeerId, _width, _height, _frameRate) {
-    if (_myPeerId) {
-        _peer = new Peer(_myPeerId, {
-            key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
-        });
-    } else {
-        _peer = new Peer({
-            key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
-        });
-    }
-    _peer.on('open', () => {
-        console.log('peer.on(\'open\'): ', _peer.id);
-        this.props.update([{ op: 'replace', path: '/myPeerId', value: _peer.id }]);
-        if (_myPeerId) {
-            _getUserMedia(_width, _height, _frameRate);
-        } else {
-            const canvas = document.createElement("canvas");
-            canvas.width = 1;
-            canvas.height = 1;
-            canvas.getContext("2d");
-            const localStream = canvas.captureStream(1);
-            _joinRoom(localStream);
-        }
-    });
-    _peer.on('error', err => {
-        console.error(err.message);
-        if (err.message === 'You do not have permission to send to this room') {
-            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_ROOM_PERMISSION }]);
-        }
-        if (/^PeerId ".+" is already in use\. Choose a different peerId and try again\.$/.test(err.message)) {
-            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_PEERID_IN_USE }]);
-        }
-    });
-    window.onbeforeunload = () => {
-        _peer.disconnect();
-        console.log('window.on(\'beforeunload\')');
-    };
-}
-
-function send(myPeerId, width, height, frameRate) {
-    _getDevices = _getDevices.bind(this);
-    _getUserMedia = _getUserMedia.bind(this);
-    _joinRoom = _joinRoom.bind(this);
-    _connectToSkyWay = _connectToSkyWay.bind(this);
-    _connectToSkyWay(myPeerId, width, height, frameRate);
+function send(_myPeerId) {
+    Promise.all([
+        _newPeer(this, _myPeerId),
+        _getStream(this),
+        _getDevices(this)
+    ]).then(_joinRoom);
 }
 
 function receive() {
-    _joinRoom = _joinRoom.bind(this);
-    _connectToSkyWay = _connectToSkyWay.bind(this);
-    _connectToSkyWay();
+    Promise.all([
+        _newPeer(this),
+        _getDummyStream(this)
+    ]).then(_joinRoom);
 }
 
-export default {send, receive};
+function changeSource(_videoInId, _audioInId) {
+    _getStream(this, _videoInId ? _videoInId : this.props.videoInId, _audioInId ? _audioInId : this.props.audioInId)
+        .then(values => {
+            const _this = values[0];
+            const stream = values[1];
+            _this.props.room.replaceStream(stream);
+        });
+}
+
+export default {send, receive, changeSource};

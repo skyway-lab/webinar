@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { IndexRoute, Link, Router, Route, browserHistory } from 'react-router';
 import { Button, Grid, Row, Col } from 'react-bootstrap';
-import CONST from './Const';
+import CONST from './const';
 import './SelectMode.css';
 
 class SelectMode extends Component {

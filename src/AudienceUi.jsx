@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Video from './Video';
-import CONST from './Const';
+import CONST from './const';
 import webinar from './webinar';
 import './AudienceUi.css';
 

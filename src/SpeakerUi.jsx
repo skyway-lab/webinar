@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Video from './Video';
 import SelectDevices from './SelectDevices';
-import CONST from './Const';
+import CONST from './const';
 import webinar from './webinar';
 import './SpeakerUi.css';
 
@@ -17,7 +17,7 @@ class SpeakerUi extends Component {
     render() {
         if (!this.isWebinarStarted) {
             this.isWebinarStarted = true;
-            webinar.send.bind(this)(this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID, 640, 480, 5);
+            webinar.send.bind(this)(this.props.params.roomName + '-' + CONST.SPEAKER_PEER_ID);
         }
         if (!this.props.localStream) {
             return false;

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Button, Alert, Grid, Row, Col } from 'react-bootstrap';
-import CONST from './Const';
+import CONST from './const';
 import './Alerts.css';
 
 export default class Alerts extends Component {
