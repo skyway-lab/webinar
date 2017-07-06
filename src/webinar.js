@@ -2,6 +2,23 @@ import CONST from './Const';
 
 let _peer;
 
+function _getDevices() {
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+        this.props.update([{ op: 'replace', path: '/devices', value: devices }]);
+        console.info('videoInId', this.props.videoInId, ', audioInId: ', this.props.audioInId);
+        if (!this.props.videoInId) {
+            const videoInId = devices.find(device => device.kind === 'videoinput').deviceId;
+            this.props.update([{ op: 'replace', path: '/videoInId', value: videoInId }]);
+        }
+        if (!this.props.audioInId) {
+            const audioInId = devices.find(device => device.kind === 'audioinput').deviceId;
+            this.props.update([{ op: 'replace', path: '/audioInId', value: audioInId }]);
+        }
+    }).catch(err => {
+        console.error(err);
+    });
+}
+
 function _getUserMedia(__width, __height, __frameRate) {
     const videoConstraints = {
         width: __width,
@@ -14,6 +31,7 @@ function _getUserMedia(__width, __height, __frameRate) {
     }, CONST.TIMEOUT_MILLISECONDS_ALERT_GUM);
     navigator.mediaDevices.getUserMedia({audio: true, video: videoConstraints})
         .then(localStream => {
+            _getDevices();
             const index = this.props.alerts.indexOf(CONST.ALERT_KIND_GUM);
             if (index !== -1) {
                 this.props.update([{ op: 'remove', path: '/alerts/' + index }]);
@@ -24,13 +42,9 @@ function _getUserMedia(__width, __height, __frameRate) {
             ]);
             _joinRoom(localStream);
         }).catch(err => {
-        console.error(err);
-        this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
-    });
-}
-
-function _getDummyStream() {
-
+            console.error(err);
+            this.props.update([{ op: 'add', path: '/alerts/-', value: CONST.ALERT_KIND_GUM }]);
+        });
 }
 
 function _joinRoom(_localStream) {
@@ -115,6 +129,7 @@ function _connectToSkyWay(_myPeerId, _width, _height, _frameRate) {
 }
 
 function send(myPeerId, width, height, frameRate) {
+    _getDevices = _getDevices.bind(this);
     _getUserMedia = _getUserMedia.bind(this);
     _joinRoom = _joinRoom.bind(this);
     _connectToSkyWay = _connectToSkyWay.bind(this);

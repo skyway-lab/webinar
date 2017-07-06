@@ -18,7 +18,10 @@ class App extends Component {
             localStream: null,
             remoteStreams: [],
             room: null,
-            myPeerId: null
+            myPeerId: null,
+            devices: [],
+            videoInId: null,
+            audioInId: null
         };
         const isSupportedWebRTC = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.RTCPeerConnection;
         if (!isSupportedWebRTC) {
@@ -52,6 +55,9 @@ class App extends Component {
                     remoteStreams: this.state.remoteStreams,
                     room: this.state.room,
                     myPeerId: this.state.myPeerId,
+                    devices: this.state.devices,
+                    videoInId: this.state.videoInId,
+                    audioInId: this.state.audioInId,
                     update: this.update
                 })}
             </div>

@@ -2,8 +2,6 @@ const CONST = {
     SPEAKER_PEER_ID: 'speaker',
     ROOM_NAME_WORDS: ['happy', 'cheerful', 'interesting', 'cool', 'awesome', 'mysterious', 'magical', 'fantastic'],
     ROOM_NAME_MAX_LENGTH: 32,
-    STREAM_KIND_CAMERA: 'CAMERA',
-    STREAM_KIND_SCREEN: 'SCREEN',
     ALERT_KIND_NOT_SUPPORT_WEBRTC: Symbol(),
     ALERT_KIND_UNSTABLE_SFU: Symbol(),
     ALERT_KIND_GUM: Symbol(),
