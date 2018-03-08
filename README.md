@@ -3,7 +3,7 @@
 ### What's this
 
 This is a simple Webinar (Web+Seminar) application.
-It's one of sample applications of [SFU feature](http://nttcom.github.io/skyway/alpha-release.html) of [SkyWay](http://skyway.io).
+It's one of sample applications of [SFU feature](https://webrtc.ecl.ntt.com/sfu.html) of [SkyWay](https://webrtc.ecl.ntt.com/).
 
 ### Features
 
