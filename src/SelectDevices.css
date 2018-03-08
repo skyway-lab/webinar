@@ -1,7 +1,11 @@
 #SelectDevices {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   left: 0;
   width: 100%;
   text-align: center;
+}
+
+#SelectDevices h2 {
+  display: none;
 }
