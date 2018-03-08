@@ -33,12 +33,6 @@ $ npm run build
 - Browsers:
     - Google Chrome
 
-### Project management
-
-- [Kanban](https://github.com/skyway/webinar/projects/1)
-- [Issues](https://github.com/skyway/webinar/issues)
-
-
 ### License
 
 - [The MIT License](LICENSE)
