@@ -5,11 +5,11 @@ function _newPeer(_this, _myPeerId) {
         let _peer;
         if (_myPeerId) {
             _peer = new Peer(_myPeerId, {
-                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
+                key: 'fcc1512f-d07a-402c-9e7a-5adf38909681'
             });
         } else {
             _peer = new Peer({
-                key: 'a84196a8-cf9a-4c17-a7e9-ecf4946ce837'
+                key: 'fcc1512f-d07a-402c-9e7a-5adf38909681'
             });
         }
         _this.props.update([{ op: 'replace', path: '/myPeerId', value: _peer.id }]);
