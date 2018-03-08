@@ -26,7 +26,7 @@ $ npm run build
 
 ### Demo
 
-- https://skyway.github.io/webinar/
+- https://skyway-lab.github.io/webinar/
 
 ### Requirements
 
